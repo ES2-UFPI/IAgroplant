@@ -4,7 +4,8 @@ from rest_framework import status
 
 from domains.auth.application.use_cases.login_use_case import LoginUseCase, LoginInput
 from domains.auth.application.use_cases.refresh_token_use_case import RefreshTokenUseCase, RefreshTokenInput
-from domains.auth.infrastructure.persistence.supabase_auth_repository import SupabaseAuthRepository
+from domains.auth.infrastructure.persistence.postgres_auth_repository import PostgresAuthRepository
+#from domains.auth.infrastructure.persistence.supabase_auth_repository import SupabaseAuthRepository
 from domains.auth.presentation.validators.auth_validator import LoginValidator, RefreshValidator
 
 
@@ -20,7 +21,8 @@ class LoginView(APIView):
             return Response(validator.errors, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            repo = SupabaseAuthRepository()
+            #repo = SupabaseAuthRepository()
+            repo = PostgresAuthRepository()
             use_case = LoginUseCase(auth_repository=repo)
             result = use_case.execute(
                 LoginInput(
@@ -57,7 +59,8 @@ class RefreshTokenView(APIView):
             return Response(validator.errors, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            repo = SupabaseAuthRepository()
+            #repo = SupabaseAuthRepository()
+            repo = PostgresAuthRepository()
             use_case = RefreshTokenUseCase(auth_repository=repo)
             result = use_case.execute(
                 RefreshTokenInput(
