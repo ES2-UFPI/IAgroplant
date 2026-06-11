@@ -1,14 +1,21 @@
-import React from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
   View,
   Text,
+  Button,
 } from "react-native";
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }: any) {
+
+  async function logout() {
+
+    await AsyncStorage.clear();
+
+    navigation.replace("Login");
+  }
 
   return (
-
     <View
       style={{
         flex: 1,
@@ -16,13 +23,14 @@ export default function HomeScreen() {
         alignItems: "center",
       }}
     >
-
       <Text>
         Login realizado com sucesso
       </Text>
 
+      <Button
+        title="Logout"
+        onPress={logout}
+      />
     </View>
-
   );
-
 }
