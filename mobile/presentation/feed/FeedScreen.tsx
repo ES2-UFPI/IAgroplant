@@ -7,6 +7,8 @@ import {
   SafeAreaView,
   StyleSheet,
   StatusBar,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { PostCard } from './components/PostCard';
 import { FilterBar } from './components/FilterBar';
@@ -15,12 +17,46 @@ import { useFeed } from './hooks/useFeed';
 import { Post } from './types/post.types';
 
 export function FeedScreen() {
-  const { posts, activeFilter, setActiveFilter, toggleLike, publishPost } = useFeed();
+  const {
+    posts,
+    activeFilter,
+    setActiveFilter,
+    isLoading,
+    isLoadingMore,
+    isPublishing,
+    hasMore,
+    error,
+    toggleLike,
+    publishPost,
+    refresh,
+    loadMore,
+  } = useFeed();
   const [showCompose, setShowCompose] = useState(false);
 
-  function handlePublish(type: any, content: string) {
-    publishPost(type, content);
+  async function handlePublish(type: any, input: any) {
+    await publishPost(type, input);
     setShowCompose(false);
+  }
+
+  if (isLoading && posts.length === 0) {
+    return (
+      <SafeAreaView style={[styles.safe, styles.centered]}>
+        <ActivityIndicator size="large" color="#16A34A" />
+        <Text style={styles.loadingText}>Carregando feed...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (error && posts.length === 0) {
+    return (
+      <SafeAreaView style={[styles.safe, styles.centered]}>
+        <Text style={styles.errorEmoji}>⚠️</Text>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity onPress={refresh} style={styles.retryBtn}>
+          <Text style={styles.retryText}>Tentar novamente</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -38,8 +74,11 @@ export function FeedScreen() {
         <TouchableOpacity
           onPress={() => setShowCompose((v) => !v)}
           style={styles.publishBtn}
+          disabled={isPublishing}
         >
-          <Text style={styles.publishBtnText}>{showCompose ? '✕ Fechar' : '+ Publicar'}</Text>
+          <Text style={styles.publishBtnText}>
+            {isPublishing ? 'Publicando...' : showCompose ? '✕ Fechar' : '+ Publicar'}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -50,9 +89,7 @@ export function FeedScreen() {
       <FlatList<Post>
         data={posts}
         keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => (
-          <PostCard post={item} onLike={toggleLike} />
-        )}
+        renderItem={({ item }) => <PostCard post={item} onLike={toggleLike} />}
         ListHeaderComponent={
           showCompose ? (
             <ComposeBox onPublish={handlePublish} onClose={() => setShowCompose(false)} />
@@ -64,15 +101,34 @@ export function FeedScreen() {
             <Text style={styles.emptyText}>Nenhum post nessa categoria.</Text>
           </View>
         }
+        ListFooterComponent={
+          isLoadingMore ? (
+            <View style={styles.footer}>
+              <ActivityIndicator size="small" color="#16A34A" />
+            </View>
+          ) : !hasMore && posts.length > 0 ? (
+            <Text style={styles.footerText}>Você chegou ao fim do feed</Text>
+          ) : null
+        }
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.3}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refresh}
+            tintColor="#16A34A"
+            colors={['#16A34A']}
+          />
+        }
       />
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F9FAFB' },
+  centered: { alignItems: 'center', justifyContent: 'center', gap: 12 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -80,7 +136,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    borderBottomWidth: 1,
+    borderBottomWidth: 0.5,
     borderBottomColor: '#E5E7EB',
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -105,4 +161,17 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', paddingVertical: 40 },
   emptyEmoji: { fontSize: 40 },
   emptyText: { fontSize: 14, color: '#9CA3AF', marginTop: 8 },
+  footer: { paddingVertical: 16, alignItems: 'center' },
+  footerText: { textAlign: 'center', color: '#9CA3AF', fontSize: 12, paddingVertical: 16 },
+  loadingText: { fontSize: 14, color: '#9CA3AF', marginTop: 8 },
+  errorEmoji: { fontSize: 36 },
+  errorText: { fontSize: 14, color: '#6B7280', textAlign: 'center', paddingHorizontal: 32 },
+  retryBtn: {
+    marginTop: 8,
+    backgroundColor: '#16A34A',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 999,
+  },
+  retryText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 });
