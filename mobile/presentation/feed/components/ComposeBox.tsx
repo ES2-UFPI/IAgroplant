@@ -7,9 +7,13 @@ import {
   StyleSheet,
 } from 'react-native';
 import { PostType } from '../types/post.types';
+import { PublishPostInput } from '../services/postService';
 
 interface ComposeBoxProps {
-  onPublish: (type: PostType, content: string) => void;
+  onPublish: (
+    type: PostType,
+    input: Omit<PublishPostInput, 'authorId' | 'authorName' | 'authorInitials' | 'authorVerified'>
+  ) => void | Promise<void>;
   onClose: () => void;
 }
 
@@ -29,9 +33,25 @@ export function ComposeBox({ onPublish, onClose }: ComposeBoxProps) {
   const [type, setType] = useState<PostType>('simple');
   const [content, setContent] = useState('');
 
-  function handlePublish() {
+  async function handlePublish() {
     if (!content.trim()) return;
-    onPublish(type, content);
+    await onPublish(type, {
+      content,
+      authorRole: type === 'opportunity' ? 'Empresa Agrícola' : 'Produtor Rural',
+      tags:
+        type === 'diagnostic'
+          ? ['Diagnóstico', 'IA']
+          : type === 'opportunity'
+            ? ['Vaga']
+            : ['MeuPost'],
+      region: 'Brasil',
+      ...(type === 'diagnostic'
+        ? { pathogen: 'Em análise', severity: 'Baixa' }
+        : {}),
+      ...(type === 'opportunity'
+        ? { salary: 'A combinar', duration: 'A definir' }
+        : {}),
+    });
     setContent('');
   }
 
