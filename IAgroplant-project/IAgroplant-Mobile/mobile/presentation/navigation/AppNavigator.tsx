@@ -8,6 +8,7 @@ import { LoginScreen } from '../auth/LoginScreen';
 import { FeedScreen } from '../feed/FeedScreen';
 import { ProfileScreen } from '../profile/ProfileScreen';
 import { ProfileEditScreen } from '../profile/ProfileEditScreen';
+import { OpportunitiesScreen } from '../opportunities/OpportunitiesScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -48,10 +49,6 @@ function HomeScreen({ navigation }: any) {
       </TouchableOpacity>
     </View>
   );
-}
-
-function OpportunitiesScreen() {
-  return <FeedScreen title="Oportunidades" initialFilter="Vagas" />;
 }
 
 function AuthGate() {
