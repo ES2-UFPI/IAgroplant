@@ -125,7 +125,7 @@ export class OportunidadesService implements IOportunidadesRepository {
 
     // Simula a criação da candidatura
     const newApp: Candidatura = {
-      id: `app-demo-${Date.now()}`,
+      id: `app-demo-${Date.now()}-${Math.floor(Math.random() * 1000000)}`,
       opportunity_id: vacancyId,
       user_id: 'demo-user',
       user_name: 'João Agricultor',
@@ -155,7 +155,7 @@ export class OportunidadesService implements IOportunidadesRepository {
     // Fallback local: cria vaga fictícia
     const newVaga: Vaga = {
       ...vagaData,
-      id: `vaga-demo-${Date.now()}`,
+      id: `vaga-demo-${Date.now()}-${Math.floor(Math.random() * 1000000)}`,
       producer_id: 'demo-producer',
       producer_name: 'Fazenda Boa Vista', // Simula produtor ativo
       created_at: new Date().toISOString(),

@@ -79,7 +79,11 @@ export function useOpportunities() {
       const newApp = await oportunidadesService.apply(vagaId, 'mock-token');
       
       // Atualiza lista local de candidaturas
-      setCandidaturas((prev) => [newApp, ...prev]);
+      setCandidaturas((prev) => {
+        const exists = prev.some((app) => app.opportunity_id === newApp.opportunity_id);
+        if (exists) return prev;
+        return [newApp, ...prev];
+      });
 
       // Simulação da Regra de Negócio: NotificationModule.publish(NOVA_CANDIDATURA)
       // Mostra notificação push local em formato de banner de sucesso
