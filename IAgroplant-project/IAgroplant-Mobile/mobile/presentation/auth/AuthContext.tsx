@@ -13,6 +13,7 @@ type AuthContextValue = {
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  updateRole: (role: string) => Promise<void>;
 };
 
 const STORAGE_KEY = '@iagroplant/auth-user';
@@ -69,6 +70,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut: async () => {
       setUser(null);
       await AsyncStorage.removeItem(STORAGE_KEY);
+    },
+    updateRole: async (role: string) => {
+      if (user) {
+        const updated = { ...user, role };
+        setUser(updated);
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      }
     },
   }), [isLoading, user]);
 
