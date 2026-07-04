@@ -20,3 +20,10 @@ class Notification:
     is_read: bool = False
     created_at: datetime = field(default_factory=datetime.utcnow)
     metadata: Optional[dict] = None
+
+
+@dataclass
+class NotificationPreference:
+    user_id: str
+    type: str
+    enabled: bool = True

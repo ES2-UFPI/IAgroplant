@@ -1,8 +1,15 @@
 from rest_framework import serializers
 
 
-class NotifyFeedPostValidator(serializers.Serializer):
-    user_id = serializers.CharField()
-    post_id = serializers.CharField()
-    post_title = serializers.CharField()
-    tag = serializers.CharField()
+class NotificationPreferenceItemValidator(serializers.Serializer):
+    type = serializers.ChoiceField(choices=[
+        "FEED_POST",
+        "CHAT_MESSAGE",
+        "OPPORTUNITY",
+        "SYSTEM",
+    ])
+    enabled = serializers.BooleanField()
+
+
+class UpdateNotificationPreferencesValidator(serializers.Serializer):
+    preferences = NotificationPreferenceItemValidator(many=True)
