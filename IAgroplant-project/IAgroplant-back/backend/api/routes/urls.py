@@ -9,4 +9,11 @@ urlpatterns = [
         )
     ),
 
+    path(
+        "",
+        include(
+            "backend.api.routes.notification_urls"
+        )
+    ),
+
 ]
