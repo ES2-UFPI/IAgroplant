@@ -10,15 +10,10 @@ from domains.notifications.application.use_cases.mark_notification_read_use_case
     MarkNotificationReadUseCase,
     MarkNotificationReadInput,
 )
-from domains.notifications.application.use_cases.get_notification_preferences_use_case import (
-    GetNotificationPreferencesUseCase,
-    GetNotificationPreferencesInput,
+from domains.notifications.application.use_cases.notify_new_opportunity_use_case import (
+    NotifyNewOpportunityUseCase,
+    NotifyNewOpportunityInput,
 )
-from domains.notifications.application.use_cases.update_notification_preferences_use_case import (
-    UpdateNotificationPreferencesUseCase,
-    UpdateNotificationPreferencesInput,
-)
-from domains.notifications.domain.entities.notification import NotificationPreference
 from domains.notifications.infrastructure.persistence.postgres_notification_repository import (
     PostgresNotificationRepository,
 )
@@ -83,69 +78,33 @@ class MarkNotificationReadView(APIView):
             )
 
 
-class GetNotificationPreferencesView(APIView):
+class NotifyNewOpportunityView(APIView):
     """
-    GET /api/notifications/preferences/
+    POST /api/notifications/opportunity/
     """
 
-    def get(self, request):
+    def post(self, request):
         try:
             repo = PostgresNotificationRepository()
-            use_case = GetNotificationPreferencesUseCase(notification_repository=repo)
+            use_case = NotifyNewOpportunityUseCase(notification_repository=repo)
             result = use_case.execute(
-                GetNotificationPreferencesInput(
-                    user_id=request.current_user.id
+                NotifyNewOpportunityInput(
+                    user_id=request.current_user.id,
+                    opportunity_id=request.data.get("opportunity_id"),
+                    opportunity_title=request.data.get("opportunity_title"),
+                    location=request.data.get("location"),
                 )
             )
-            preferences = [
+            return Response(
                 {
-                    "type": p.type,
-                    "enabled": p.enabled,
-                }
-                for p in result.preferences
-            ]
-            return Response(preferences, status=status.HTTP_200_OK)
+                    "notification_id": result.notification_id,
+                    "title": result.title,
+                    "body": result.body,
+                },
+                status=status.HTTP_201_CREATED,
+            )
         except Exception:
             return Response(
                 {"detail": "Erro interno no servidor."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-
-class UpdateNotificationPreferencesView(APIView):
-    """
-    PUT /api/notifications/preferences/
-    """
-
-    def put(self, request):
-        try:
-            repo = PostgresNotificationRepository()
-            use_case = UpdateNotificationPreferencesUseCase(notification_repository=repo)
-            preferences = [
-                NotificationPreference(
-                    user_id=request.current_user.id,
-                    type=p.get("type"),
-                    enabled=p.get("enabled", True),
-                )
-                for p in request.data.get("preferences", [])
-            ]
-            result = use_case.execute(
-                UpdateNotificationPreferencesInput(
-                    user_id=request.current_user.id,
-                    preferences=preferences,
-                )
-            )
-            updated = [
-                {
-                    "type": p.type,
-                    "enabled": p.enabled,
-                }
-                for p in result.preferences
-            ]
-            return Response(updated, status=status.HTTP_200_OK)
-        except Exception:
-            return Response(
-                {"detail": "Erro interno no servidor."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-        
