@@ -9,6 +9,7 @@ import { FeedScreen } from '../feed/FeedScreen';
 import { ProfileScreen } from '../profile/ProfileScreen';
 import { ProfileEditScreen } from '../profile/ProfileEditScreen';
 import { OpportunitiesScreen } from '../opportunities/OpportunitiesScreen';
+import { ChatScreen } from '../chat/ChatScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -32,6 +33,13 @@ function HomeScreen({ navigation }: any) {
         onPress={() => navigation.navigate('Opportunities')}
       >
         <Text style={styles.buttonText}>Ver Oportunidades</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={[styles.button, { backgroundColor: '#166534', marginTop: 10 }]}
+        onPress={() => navigation.navigate('Chat')}
+      >
+        <Text style={styles.buttonText}>Abrir Chat</Text>
       </TouchableOpacity>
 
       <TouchableOpacity 
@@ -82,6 +90,11 @@ function AuthGate() {
               name="Opportunities" 
               component={OpportunitiesScreen} 
               options={{ title: 'Oportunidades' }} 
+            />
+            <Stack.Screen 
+              name="Chat" 
+              component={ChatScreen} 
+              options={{ title: 'Chat' }} 
             />
             <Stack.Screen 
               name="Profile" 
