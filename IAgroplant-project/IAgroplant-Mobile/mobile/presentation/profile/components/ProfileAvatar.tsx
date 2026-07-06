@@ -1,12 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 
 interface ProfileAvatarProps {
   name: string;
   size?: number;
+  photoUrl?: string | null;
 }
 
-export function ProfileAvatar({ name, size = 80 }: ProfileAvatarProps) {
+export function ProfileAvatar({ name, size = 80, photoUrl }: ProfileAvatarProps) {
   // Pega as iniciais do nome
   const initials = name
     .split(' ')
@@ -14,6 +15,15 @@ export function ProfileAvatar({ name, size = 80 }: ProfileAvatarProps) {
     .join('')
     .substring(0, 2)
     .toUpperCase();
+
+  if (photoUrl) {
+    return (
+      <Image
+        source={{ uri: photoUrl }}
+        style={[styles.container, { width: size, height: size, borderRadius: size / 2 }]}
+      />
+    );
+  }
 
   return (
     <View style={[styles.container, { width: size, height: size, borderRadius: size / 2 }]}>

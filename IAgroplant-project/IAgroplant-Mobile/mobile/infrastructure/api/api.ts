@@ -1,9 +1,10 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// In Expo development on an emulator or local machine, localhost or 10.0.2.2 is usually used.
-// We point to http://localhost:8000/api by default (standard django port).
-const API_URL = 'http://localhost:8000/api';
+// Em emulador/simulador local, localhost (iOS) ou 10.0.2.2 (Android) funcionam.
+// Em um dispositivo físico via Expo Go, é preciso o IP de LAN da máquina que
+// roda o backend — defina EXPO_PUBLIC_API_URL em um .env.local para isso.
+const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -59,6 +60,35 @@ export async function post(url: string, data?: any) {
     return response.data;
   } catch (error: any) {
     console.warn(`POST ${url} failed, using local fallback.`, error.message);
+    throw error;
+  }
+}
+
+export async function put(url: string, data?: any) {
+  try {
+    const response = await api.put(url, data);
+    return response.data;
+  } catch (error: any) {
+    console.warn(`PUT ${url} failed, using local fallback.`, error.message);
+    throw error;
+  }
+}
+
+export async function uploadFile(url: string, fileUri: string, fieldName: string) {
+  try {
+    const filename = fileUri.split('/').pop() ?? `${fieldName}.jpg`;
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+    const formData = new FormData();
+    formData.append(fieldName, { uri: fileUri, name: filename, type } as any);
+
+    const response = await api.post(url, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.warn(`UPLOAD ${url} failed, using local fallback.`, error.message);
     throw error;
   }
 }
