@@ -18,7 +18,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useOpportunities, OpportunitiesFilters } from './OportunidadesViewModel';
 import { Vaga } from '../../domain/entities/vaga.types';
 
-export function OpportunitiesScreen() {
+export function OpportunitiesScreen({ route }: any) {
   const { user, updateRole } = useAuth();
   const {
     vagas,
@@ -33,7 +33,8 @@ export function OpportunitiesScreen() {
     refresh,
   } = useOpportunities();
 
-  const [activeTab, setActiveTab] = useState<'list' | 'applications'>('list');
+  const initialTab = route?.params?.initialTab === 'applications' ? 'applications' : 'list';
+  const [activeTab, setActiveTab] = useState<'list' | 'applications'>(initialTab);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedVaga, setSelectedVaga] = useState<Vaga | null>(null);
   const [showMap, setShowMap] = useState(false);

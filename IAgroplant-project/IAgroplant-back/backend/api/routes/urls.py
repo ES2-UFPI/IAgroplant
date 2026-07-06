@@ -16,4 +16,11 @@ urlpatterns = [
         )
     ),
 
+    path(
+        "",
+        include(
+            "backend.api.routes.users_urls"
+        )
+    ),
+
 ]
