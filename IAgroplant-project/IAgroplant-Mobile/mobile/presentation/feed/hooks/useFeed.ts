@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Post, PostType } from '../types/post.types';
-import { postService, PublishPostInput } from '../../application/services/postService';
-import auth from '@react-native-firebase/auth';
+import { postService, PublishPostInput } from '../../../application/services/postService';
+import { useAuth } from '../../auth/AuthContext';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
@@ -11,9 +11,10 @@ export const FILTER_CATEGORIES = [
 
 // ─── HOOK ─────────────────────────────────────────────────────────────────────
 
-export function useFeed() {
+export function useFeed(initialFilter = 'Todos') {
+  const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
-  const [activeFilter, setActiveFilter] = useState('Todos');
+  const [activeFilter, setActiveFilter] = useState(initialFilter);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -50,8 +51,8 @@ export function useFeed() {
 
   // carrega ao montar
   useEffect(() => {
-    loadPosts('Todos', true);
-  }, []);
+    loadPosts(initialFilter, true);
+  }, [initialFilter, loadPosts]);
 
   // recarrega ao trocar filtro
   useEffect(() => {
@@ -70,7 +71,6 @@ export function useFeed() {
   // ─── CURTIDA ────────────────────────────────────────────────────────────────
 
   async function toggleLike(postId: number) {
-    const user = auth().currentUser;
     if (!user) return;
 
     // optimistic update
@@ -86,9 +86,9 @@ export function useFeed() {
       const post = posts.find((p) => p.id === postId);
       if (!post) return;
       if (post.liked) {
-        await postService.unlikePost(postId, user.uid);
+        await postService.unlikePost(postId, user.id);
       } else {
-        await postService.likePost(postId, user.uid);
+        await postService.likePost(postId, user.id);
       }
     } catch {
       // reverte se falhar
@@ -105,19 +105,18 @@ export function useFeed() {
   // ─── PUBLICAÇÃO ─────────────────────────────────────────────────────────────
 
   async function publishPost(type: PostType, input: Omit<PublishPostInput, 'authorId' | 'authorName' | 'authorInitials' | 'authorVerified'>) {
-    const user = auth().currentUser;
     if (!user) throw new Error('Usuário não autenticado');
 
     setIsPublishing(true);
     try {
       const newPost = await postService.publishPost(type, {
         ...input,
-        authorId: user.uid,
-        authorName: user.displayName ?? 'Usuário',
+        authorId: user.id,
+        authorName: user.name ?? 'Usuário',
         authorRole: input.authorRole,
-        authorInitials: (user.displayName ?? 'U')
+        authorInitials: (user.name ?? 'U')
           .split(' ')
-          .map((n) => n[0])
+          .map((n: string) => n[0])
           .slice(0, 2)
           .join('')
           .toUpperCase(),

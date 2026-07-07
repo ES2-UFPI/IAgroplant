@@ -4,6 +4,7 @@ PyJWT>=2.8
 python-decouple>=3.8
 #supabase>=2.0
 bcrypt>=4.1
+cloudinary>=1.36
 
 psycopg2-binary>=2.9
 
