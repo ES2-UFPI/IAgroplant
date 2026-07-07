@@ -12,14 +12,14 @@ urlpatterns = [
     path(
         "",
         include(
-            "backend.api.routes.opportunities_urls"
+            "backend.api.routes.notification_urls"
         )
     ),
 
     path(
         "",
         include(
-            "backend.api.routes.users_urls"
+            "backend.api.routes.opportunities_urls"
         )
     ),
 
