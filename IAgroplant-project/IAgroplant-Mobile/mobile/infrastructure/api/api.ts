@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-const API_URL = 'http://10.13.64.105:8000/api';
+const API_URL = 'http://10.13.15.165:8000/api';
 
 
 const api = axios.create({
@@ -48,13 +48,17 @@ api.interceptors.request.use(
       }
 
 
-    } catch (e) {
+    } catch (error: any) {
 
-      console.warn(
-        'Could not read auth token',
-        e
-      );
+      console.log("========== AXIOS ERROR ==========");
+      console.log("message:", error.message);
+      console.log("code:", error.code);
+      console.log("response:", error.response?.data);
+      console.log("status:", error.response?.status);
+      console.log("request:", error.request);
+      console.log(error);
 
+      throw error;
     }
 
 

@@ -1,8 +1,6 @@
 import { diagnosePlant } from "../application/services/DiagnosticService";
 
-
 export default class DiagnosticFacade {
-
 
     async diagnose(
 
@@ -12,33 +10,37 @@ export default class DiagnosticFacade {
 
     ) {
 
+        console.log("========== FACADE ==========");
+        console.log("Imagem recebida:");
+        console.log(image);
 
         const formData = new FormData();
-
 
         formData.append(
 
             "image",
 
             {
+
                 uri: image.uri,
 
-                type:
-                    image.mimeType ?? "image/jpeg",
+                type: image.mimeType ?? image.type ?? "image/jpeg",
 
-                name:
-                    "plant-image.jpg",
+                name: image.fileName ?? "plant-image.jpg",
 
             } as any
 
         );
 
+        formData.append(
 
-            formData.append(
-                "description",
-                description,
-            );
+            "description",
 
+            description,
+
+        );
+
+        console.log("Enviando FormData para API...");
 
         return await diagnosePlant(
 
@@ -46,8 +48,6 @@ export default class DiagnosticFacade {
 
         );
 
-
     }
-
 
 }
