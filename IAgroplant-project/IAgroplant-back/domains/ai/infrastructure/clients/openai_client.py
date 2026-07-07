@@ -1,7 +1,7 @@
-from domains.ai.domain.repositories.ai_repository import AIRepository
+from domains.ai.domain.repositories.ai_repository import AIProvider
 
 
-class OpenAIClient(AIRepository):
+class OpenAIClient(AIProvider):
 
     def diagnose(
         self,

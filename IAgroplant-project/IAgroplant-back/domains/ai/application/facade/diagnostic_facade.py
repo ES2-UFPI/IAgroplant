@@ -2,14 +2,14 @@ from domains.ai.application.dto.diagnostic_input import DiagnosticInput
 
 from domains.ai.application.use_cases.diagnose_use_case import DiagnoseUseCase
 
-from domains.ai.domain.repositories.ai_repository import AIRepository
+from domains.ai.domain.repositories.ai_repository import AIProvider
 
 
 class DiagnosticFacade:
 
     def __init__(
         self,
-        repository: AIRepository,
+        repository: AIProvider,
     ):
 
         self._use_case = DiagnoseUseCase(

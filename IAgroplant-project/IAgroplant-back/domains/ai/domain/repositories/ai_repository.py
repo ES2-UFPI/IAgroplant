@@ -1,15 +1,13 @@
-from abc import ABC
-from abc import abstractmethod
-
-from domains.ai.domain.entities.diagnostic import Diagnostic
+from abc import ABC, abstractmethod
 
 
-class AIRepository(ABC):
+class AIProvider(ABC):
+
 
     @abstractmethod
     def diagnose(
         self,
-        image: bytes,
+        image: str,
         prompt: str,
-    ) -> Diagnostic:
+    ):
         pass

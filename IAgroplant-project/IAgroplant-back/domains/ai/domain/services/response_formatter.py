@@ -1,23 +1,81 @@
-from domains.ai.domain.entities.diagnostic import Diagnostic
+from domains.diagnosis.domain.entities.diagnostic_result import DiagnosticResult
 
 
 class ResponseFormatter:
 
+
     @staticmethod
     def format(
-        raw: dict,
-    ) -> Diagnostic:
+        text
+    ) -> DiagnosticResult:
 
-        return Diagnostic(
 
-            pathogen=raw["pathogen"],
+        if isinstance(text, dict):
 
-            severity=raw["severity"],
+            text = (
+                text.get("text")
+                or
+                text.get("response")
+                or
+                str(text)
+            )
 
-            management=raw["management"],
+
+        pathogen = "Desconhecido"
+
+        severity = "Não informado"
+
+        management = text
+
+
+
+        for line in text.splitlines():
+
+            if line.lower().startswith(
+                "patógeno"
+            ):
+
+                pathogen = line.split(
+                    ":",
+                    1
+                )[1].strip()
+
+
+
+            elif line.lower().startswith(
+                "severidade"
+            ):
+
+                severity = line.split(
+                    ":",
+                    1
+                )[1].strip()
+
+
+
+            elif line.lower().startswith(
+                "manejo"
+            ):
+
+                management = line.split(
+                    ":",
+                    1
+                )[1].strip()
+
+
+
+        return DiagnosticResult(
+
+            pathogen=pathogen,
+
+            severity=severity,
+
+            management=management,
+
+            confidence=0.80,
 
             technical_warning=(
-                "Resultado auxiliar. "
-                "Não substitui laudo técnico."
-            ),
+                "Este diagnóstico é apenas auxiliar "
+                "e não substitui um laudo técnico."
+            )
         )

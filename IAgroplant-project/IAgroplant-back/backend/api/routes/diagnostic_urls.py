@@ -6,13 +6,9 @@ from domains.ai.presentation.controllers.diagnostic_controller import Diagnostic
 urlpatterns = [
 
     path(
-
         "",
-
         DiagnosticController.as_view(),
-
         name="diagnostic",
-
     ),
 
 ]

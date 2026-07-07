@@ -1,18 +1,52 @@
+import base64
+import io
+
+from PIL import Image
+
+
 class ImageProcessor:
 
+    MAX_SIZE = (1024, 1024)
+
+    JPEG_QUALITY = 80
+
+
     @staticmethod
-    def process(
-        image: bytes,
-    ) -> bytes:
+    def process(image_bytes: bytes):
 
-        """
-        Futuramente:
+        image_stream = io.BytesIO(
+            image_bytes
+        )
 
-        • reduzir resolução
-        • remover EXIF
-        • converter JPEG
-        • comprimir
 
-        """
+        image = Image.open(
+            image_stream
+        )
 
-        return image
+
+        image.thumbnail(
+            ImageProcessor.MAX_SIZE
+        )
+
+
+        if image.mode != "RGB":
+
+            image = image.convert(
+                "RGB"
+            )
+
+
+        buffer = io.BytesIO()
+
+
+        image.save(
+            buffer,
+            format="JPEG",
+            quality=ImageProcessor.JPEG_QUALITY,
+            optimize=True
+        )
+
+
+        return base64.b64encode(
+            buffer.getvalue()
+        ).decode("utf-8")

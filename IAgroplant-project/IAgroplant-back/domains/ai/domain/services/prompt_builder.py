@@ -2,35 +2,25 @@ class PromptBuilder:
 
     @staticmethod
     def build(
-        description: str,
+        description: str
     ) -> str:
 
         return f"""
-Você é um engenheiro agrônomo especialista em fitopatologia.
+Você é um engenheiro agrônomo especialista em doenças vegetais.
 
-Analise cuidadosamente a imagem.
+Analise a imagem enviada.
 
-Considere:
-
-- fungos
-
-- bactérias
-
-- insetos
-
-- deficiência nutricional
-
-- manchas foliares
-
-Descrição do produtor:
+Descrição do agricultor:
 
 {description}
 
-Responda SOMENTE no formato:
+Responda APENAS neste formato:
 
 Patógeno:
-
 Severidade:
-
 Manejo:
+
+Nunca invente informações.
+
+Caso não consiga identificar, informe isso claramente.
 """
