@@ -86,9 +86,9 @@ export function useFeed(initialFilter = 'Todos') {
       const post = posts.find((p) => p.id === postId);
       if (!post) return;
       if (post.liked) {
-        await postService.unlikePost(postId, user.uid);
+        await postService.unlikePost(postId, user.id);
       } else {
-        await postService.likePost(postId, user.uid);
+        await postService.likePost(postId, user.id);
       }
     } catch {
       // reverte se falhar
@@ -111,12 +111,12 @@ export function useFeed(initialFilter = 'Todos') {
     try {
       const newPost = await postService.publishPost(type, {
         ...input,
-        authorId: user.uid,
-        authorName: user.displayName ?? 'Usuário',
+        authorId: user.id,
+        authorName: user.name ?? 'Usuário',
         authorRole: input.authorRole,
-        authorInitials: (user.displayName ?? 'U')
+        authorInitials: (user.name ?? 'U')
           .split(' ')
-          .map((n) => n[0])
+          .map((n: string) => n[0])
           .slice(0, 2)
           .join('')
           .toUpperCase(),
