@@ -10,9 +10,9 @@ from domains.notifications.application.use_cases.mark_notification_read_use_case
     MarkNotificationReadUseCase,
     MarkNotificationReadInput,
 )
-from domains.notifications.application.use_cases.notify_new_opportunity_use_case import (
-    NotifyNewOpportunityUseCase,
-    NotifyNewOpportunityInput,
+from domains.notifications.application.use_cases.notify_chat_message_use_case import (
+    NotifyChatMessageUseCase,
+    NotifyChatMessageInput,
 )
 from domains.notifications.infrastructure.persistence.postgres_notification_repository import (
     PostgresNotificationRepository,
@@ -78,21 +78,21 @@ class MarkNotificationReadView(APIView):
             )
 
 
-class NotifyNewOpportunityView(APIView):
+class NotifyChatMessageView(APIView):
     """
-    POST /api/notifications/opportunity/
+    POST /api/notifications/chat/
     """
 
     def post(self, request):
         try:
             repo = PostgresNotificationRepository()
-            use_case = NotifyNewOpportunityUseCase(notification_repository=repo)
+            use_case = NotifyChatMessageUseCase(notification_repository=repo)
             result = use_case.execute(
-                NotifyNewOpportunityInput(
+                NotifyChatMessageInput(
                     user_id=request.current_user.id,
-                    opportunity_id=request.data.get("opportunity_id"),
-                    opportunity_title=request.data.get("opportunity_title"),
-                    location=request.data.get("location"),
+                    sender_name=request.data.get("sender_name"),
+                    message_preview=request.data.get("message_preview"),
+                    chat_id=request.data.get("chat_id"),
                 )
             )
             return Response(

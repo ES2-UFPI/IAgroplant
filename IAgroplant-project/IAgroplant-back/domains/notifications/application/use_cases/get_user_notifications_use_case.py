@@ -35,4 +35,3 @@ class GetUserNotificationsUseCase:
         return GetUserNotificationsOutput(
             notifications=notifications
         )
-    

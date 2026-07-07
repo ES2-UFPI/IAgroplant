@@ -3,7 +3,7 @@ from django.urls import path
 from domains.notifications.presentation.controllers.notification_controller import (
     GetUserNotificationsView,
     MarkNotificationReadView,
-    NotifyNewOpportunityView,
+    NotifyChatMessageView,
 )
 
 urlpatterns = [
@@ -18,8 +18,8 @@ urlpatterns = [
         name="mark_notification_read",
     ),
     path(
-        "notifications/opportunity/",
-        NotifyNewOpportunityView.as_view(),
-        name="notify_new_opportunity",
+        "notifications/chat/",
+        NotifyChatMessageView.as_view(),
+        name="notify_chat_message",
     ),
 ]

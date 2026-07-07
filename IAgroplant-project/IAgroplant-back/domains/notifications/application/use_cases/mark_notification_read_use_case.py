@@ -33,3 +33,4 @@ class MarkNotificationReadUseCase:
         return MarkNotificationReadOutput(
             success=success
         )
+    

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 
-class NotifyNewOpportunityValidator(serializers.Serializer):
-    opportunity_id = serializers.CharField()
-    opportunity_title = serializers.CharField()
-    location = serializers.CharField()
+class NotifyChatMessageValidator(serializers.Serializer):
+    sender_name = serializers.CharField()
+    message_preview = serializers.CharField()
+    chat_id = serializers.CharField()
