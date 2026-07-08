@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -9,6 +15,7 @@ import { FeedScreen } from '../feed/FeedScreen';
 import { ProfileScreen } from '../profile/ProfileScreen';
 import { ProfileEditScreen } from '../profile/ProfileEditScreen';
 import { OpportunitiesScreen } from '../opportunities/OpportunitiesScreen';
+import DiagnosticScreen from "../screens/DiagnosticScreen";
 import { ChatScreen } from '../chat/ChatScreen';
 import { NotificationsScreen } from '../notifications/NotificationsScreen';
 
@@ -20,16 +27,18 @@ function HomeScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Bem-vindo ao IAgroplant!</Text>
-      <Text style={styles.subtitle}>{user?.name ?? 'Usuário'} está conectado.</Text>
-      
-      <TouchableOpacity 
+      <Text style={styles.subtitle}>
+        {user?.name ?? 'Usuário'} está conectado.
+      </Text>
+
+      <TouchableOpacity
         style={[styles.button, { backgroundColor: '#2e7d32' }]}
         onPress={() => navigation.navigate('Feed')}
       >
         <Text style={styles.buttonText}>Abrir Feed</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[styles.button, { backgroundColor: '#0f766e', marginTop: 10 }]}
         onPress={() => navigation.navigate('Opportunities')}
       >
@@ -57,7 +66,14 @@ function HomeScreen({ navigation }: any) {
         <Text style={styles.buttonText}>Abrir Perfil</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity 
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: '#388e3c', marginTop: 10 }]}
+        onPress={() => navigation.navigate('Diagnostic')}
+      >
+        <Text style={styles.buttonText}>Novo Diagnóstico</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
         style={[styles.button, { backgroundColor: '#d32f2f', marginTop: 10 }]}
         onPress={() => signOut()}
       >
@@ -85,20 +101,22 @@ function AuthGate() {
       <Stack.Navigator>
         {user ? (
           <>
-            <Stack.Screen 
-              name="Home" 
-              component={HomeScreen} 
-              options={{ title: 'Início' }} 
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{ title: 'Início' }}
             />
-            <Stack.Screen 
-              name="Feed" 
-              component={FeedScreen} 
-              options={{ title: 'Feed' }} 
+
+            <Stack.Screen
+              name="Feed"
+              component={FeedScreen}
+              options={{ title: 'Feed' }}
             />
-            <Stack.Screen 
-              name="Opportunities" 
-              component={OpportunitiesScreen} 
-              options={{ title: 'Oportunidades' }} 
+
+            <Stack.Screen
+              name="Opportunities"
+              component={OpportunitiesScreen}
+              options={{ title: 'Oportunidades' }}
             />
             <Stack.Screen 
               name="Chat" 
@@ -110,10 +128,17 @@ function AuthGate() {
               component={ProfileScreen} 
               options={{ title: 'Meu Perfil' }} 
             />
-            <Stack.Screen 
-              name="ProfileEdit" 
-              component={ProfileEditScreen} 
-              options={{ title: 'Editar Perfil' }} 
+
+            <Stack.Screen
+              name="ProfileEdit"
+              component={ProfileEditScreen}
+              options={{ title: 'Editar Perfil' }}
+            />
+
+            <Stack.Screen
+              name="Diagnostic"
+              component={DiagnosticScreen}
+              options={{ title: 'Diagnóstico IA' }}
             />
             <Stack.Screen 
               name="Notifications" 
@@ -123,10 +148,10 @@ function AuthGate() {
 
           </>
         ) : (
-          <Stack.Screen 
-            name="Login" 
-            component={LoginScreen} 
-            options={{ headerShown: false }} 
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
           />
         )}
       </Stack.Navigator>
@@ -153,7 +178,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 10,
-    color: '#2e7d32', 
+    color: '#2e7d32',
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#4b5563',
+    marginBottom: 10,
   },
   button: {
     paddingHorizontal: 20,
@@ -167,11 +197,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
     fontSize: 16,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#4b5563',
-    marginBottom: 10,
   },
   loadingContainer: {
     flex: 1,

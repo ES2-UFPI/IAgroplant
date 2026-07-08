@@ -6,6 +6,7 @@ PUBLIC_ROUTES = [
     "/api/auth/login",
     "/api/auth/refresh",
     "/admin/",
+    "/api/diagnostic",
 ]
 
 

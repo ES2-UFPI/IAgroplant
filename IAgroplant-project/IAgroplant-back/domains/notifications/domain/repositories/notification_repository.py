@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from domains.notifications.domain.entities.notification import Notification, NotificationPreference
+from domains.notifications.domain.entities.notification import Notification
 
 
 class NotificationRepository(ABC):
@@ -25,19 +25,4 @@ class NotificationRepository(ABC):
         self,
         notification_id: str
     ) -> bool:
-        pass
-
-    @abstractmethod
-    def get_preferences(
-        self,
-        user_id: str
-    ) -> List[NotificationPreference]:
-        pass
-
-    @abstractmethod
-    def update_preferences(
-        self,
-        user_id: str,
-        preferences: List[NotificationPreference]
-    ) -> List[NotificationPreference]:
         pass
