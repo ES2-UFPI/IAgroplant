@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Post, PostType } from '../types/post.types';
-import { postService, PublishPostInput } from '../../../application/services/postService';
-import { useAuth } from '../../auth/AuthContext';
+import { postService, PublishPostInput } from '../../application/services/postService';
+import auth from '@react-native-firebase/auth';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
@@ -11,10 +11,9 @@ export const FILTER_CATEGORIES = [
 
 // ─── HOOK ─────────────────────────────────────────────────────────────────────
 
-export function useFeed(initialFilter = 'Todos') {
-  const { user } = useAuth();
+export function useFeed() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [activeFilter, setActiveFilter] = useState(initialFilter);
+  const [activeFilter, setActiveFilter] = useState('Todos');
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -51,8 +50,8 @@ export function useFeed(initialFilter = 'Todos') {
 
   // carrega ao montar
   useEffect(() => {
-    loadPosts(initialFilter, true);
-  }, [initialFilter, loadPosts]);
+    loadPosts('Todos', true);
+  }, []);
 
   // recarrega ao trocar filtro
   useEffect(() => {
@@ -71,6 +70,7 @@ export function useFeed(initialFilter = 'Todos') {
   // ─── CURTIDA ────────────────────────────────────────────────────────────────
 
   async function toggleLike(postId: number) {
+    const user = auth().currentUser;
     if (!user) return;
 
     // optimistic update
@@ -105,6 +105,7 @@ export function useFeed(initialFilter = 'Todos') {
   // ─── PUBLICAÇÃO ─────────────────────────────────────────────────────────────
 
   async function publishPost(type: PostType, input: Omit<PublishPostInput, 'authorId' | 'authorName' | 'authorInitials' | 'authorVerified'>) {
+    const user = auth().currentUser;
     if (!user) throw new Error('Usuário não autenticado');
 
     setIsPublishing(true);

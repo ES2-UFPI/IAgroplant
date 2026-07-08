@@ -21,13 +21,7 @@ DEBUG = config(
     cast=bool,
     default=True
 )
-AI_PROVIDER = config(
 
-    "AI_PROVIDER",
-
-    default="fake"
-
-)
 ALLOWED_HOSTS = ["*"]
 
 
