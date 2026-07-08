@@ -1,4 +1,4 @@
-import { Post, PostType, BasePost } from '../types/post.types';
+import { Post, PostType, BasePost } from '../../../domain/entities/post.entity';
 
 // ─── FACTORY METHOD PATTERN ───────────────────────────────────────────────────
 // PostFactory define a interface para criação de posts.

@@ -1,35 +1,7 @@
-import { Post, PostType } from '../../presentation/feed/types/post.types';
+import { Post, PostType } from '../../domain/entities/post.entity';
+import { IFeedRepository, PublishPostInput } from '../../domain/repositories/FeedRepository';
 import { createPost } from '../../presentation/feed/factories';
 import { get, post } from '../../infrastructure/api/api';
-
-// ─── INTERFACE ────────────────────────────────────────────────────────────────
-// Contrato que qualquer implementação de serviço de posts deve seguir.
-// Quando o Supabase estiver pronto, basta criar SupabasePostService
-// implementando essa mesma interface — o restante do app não muda.
-
-export interface IPostService {
-  fetchPosts(page: number, filter: string): Promise<Post[]>;
-  likePost(postId: number | string, userId: string): Promise<void>;
-  unlikePost(postId: number | string, userId: string): Promise<void>;
-  publishPost(type: PostType, data: PublishPostInput): Promise<Post>;
-}
-
-export interface PublishPostInput {
-  content: string;
-  tags: string[];
-  image?: string;
-  authorId: string;
-  authorName: string;
-  authorRole: string;
-  authorInitials: string;
-  authorVerified: boolean;
-  region: string;
-  // campos específicos por tipo
-  pathogen?: string;
-  severity?: 'Baixa' | 'Moderada' | 'Alta';
-  salary?: string;
-  duration?: string;
-}
 
 // ─── MOCK DATA ────────────────────────────────────────────────────────────────
 
@@ -96,13 +68,13 @@ const CATEGORY_MAP: Record<string, string> = {
 };
 
 // ─── MOCK IMPLEMENTATION ──────────────────────────────────────────────────────
+// Implementa IFeedRepository com dados em memória.
 // Simula latência de rede e paginação real.
-// Substitua por SupabasePostService quando o banco estiver modelado.
 
-export class MockPostService implements IPostService {
+export class MockPostService implements IFeedRepository {
   private likedPosts = new Set<number>();
 
-  async fetchPosts(page: number, filter: string): Promise<Post[]> {
+  async getAll(page: number, filter: string): Promise<Post[]> {
     await delay(600);
 
     const filtered =
@@ -117,20 +89,10 @@ export class MockPostService implements IPostService {
     const slice = filtered.slice(start, start + PAGE_SIZE);
 
     // aplica estado de curtida em memória
-    return slice.map((p) => ({ ...p, liked: this.likedPosts.has(p.id) }));
+    return slice.map((p) => ({ ...p, liked: this.likedPosts.has(p.id as number) }));
   }
 
-  async likePost(postId: number, _userId: string): Promise<void> {
-    await delay(200);
-    this.likedPosts.add(postId);
-  }
-
-  async unlikePost(postId: number, _userId: string): Promise<void> {
-    await delay(200);
-    this.likedPosts.delete(postId);
-  }
-
-  async publishPost(type: PostType, data: PublishPostInput): Promise<Post> {
+  async save(type: PostType, data: PublishPostInput): Promise<Post> {
     await delay(800);
     return createPost(type, {
       id: Date.now(),
@@ -160,14 +122,26 @@ export class MockPostService implements IPostService {
         : {}),
     });
   }
+
+  async like(postId: number | string, _userId: string): Promise<void> {
+    await delay(200);
+    this.likedPosts.add(Number(postId));
+  }
+
+  async unlike(postId: number | string, _userId: string): Promise<void> {
+    await delay(200);
+    this.likedPosts.delete(Number(postId));
+  }
 }
 
 // ─── API IMPLEMENTATION ───────────────────────────────────────────────────────
+// Implementa IFeedRepository consumindo a API REST.
+// Fallback para MockPostService quando a API não está disponível.
 
-export class ApiPostService implements IPostService {
+export class ApiPostService implements IFeedRepository {
   private mockService = new MockPostService();
 
-  async fetchPosts(page: number, filter: string): Promise<Post[]> {
+  async getAll(page: number, filter: string): Promise<Post[]> {
     try {
       const data = await get('/posts', { filter });
       if (Array.isArray(data)) {
@@ -176,30 +150,10 @@ export class ApiPostService implements IPostService {
     } catch (error: any) {
       console.log('Erro ao carregar posts da API, servindo dados locais...', error.message);
     }
-    return this.mockService.fetchPosts(page, filter);
+    return this.mockService.getAll(page, filter);
   }
 
-  async likePost(postId: number | string, userId: string): Promise<void> {
-    try {
-      await post(`/posts/${postId}/like`);
-      return;
-    } catch (error: any) {
-      console.log('Erro ao curtir post na API, executando localmente...', error.message);
-    }
-    return this.mockService.likePost(Number(postId) || 0, userId);
-  }
-
-  async unlikePost(postId: number | string, userId: string): Promise<void> {
-    try {
-      await post(`/posts/${postId}/unlike`);
-      return;
-    } catch (error: any) {
-      console.log('Erro ao descurtir post na API, executando localmente...', error.message);
-    }
-    return this.mockService.unlikePost(Number(postId) || 0, userId);
-  }
-
-  async publishPost(type: PostType, data: PublishPostInput): Promise<Post> {
+  async save(type: PostType, data: PublishPostInput): Promise<Post> {
     try {
       const payload = {
         type,
@@ -219,16 +173,44 @@ export class ApiPostService implements IPostService {
     } catch (error: any) {
       console.log('Erro ao publicar post na API, usando local fallback...', error.message);
     }
-    return this.mockService.publishPost(type, data);
+    return this.mockService.save(type, data);
+  }
+
+  async like(postId: number | string, userId: string): Promise<void> {
+    try {
+      await post(`/posts/${postId}/like`);
+      return;
+    } catch (error: any) {
+      console.log('Erro ao curtir post na API, executando localmente...', error.message);
+    }
+    return this.mockService.like(postId, userId);
+  }
+
+  async unlike(postId: number | string, userId: string): Promise<void> {
+    try {
+      await post(`/posts/${postId}/unlike`);
+      return;
+    } catch (error: any) {
+      console.log('Erro ao descurtir post na API, executando localmente...', error.message);
+    }
+    return this.mockService.unlike(postId, userId);
   }
 }
 
 // ─── SINGLETON ────────────────────────────────────────────────────────────────
+// Instância única do repositório usada por toda a aplicação.
+// Os Use-Cases recebem esta instância como dependência.
 
-export const postService: IPostService = new ApiPostService();
+export const feedRepository: IFeedRepository = new ApiPostService();
+
+// Compatibilidade — alias para código legado que ainda importa postService
+export const postService = feedRepository;
 
 // ─── UTIL ─────────────────────────────────────────────────────────────────────
 
 function delay(ms: number) {
   return new Promise((res) => setTimeout(res, ms));
 }
+
+// Re-exporta PublishPostInput para manter compatibilidade com imports existentes
+export type { PublishPostInput } from '../../domain/repositories/FeedRepository';

@@ -150,7 +150,7 @@ export function PostCard({ post, onLike }: PostCardProps) {
           style={[styles.actionBtn, post.liked && styles.actionBtnLiked]}
         >
           <Text style={[styles.actionText, post.liked && styles.actionTextLiked]}>
-            {post.liked ? '❤️' : '🤍'} {post.likes + (post.liked ? 1 : 0)}
+            {post.liked ? '❤️' : '🤍'} {post.likes}
           </Text>
         </TouchableOpacity>
 

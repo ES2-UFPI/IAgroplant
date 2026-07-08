@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Post, PostType } from '../types/post.types';
-import { postService, PublishPostInput } from '../../../application/services/postService';
+import { Post, PostType } from '../../../domain/entities/post.entity';
+import { PublishPostInput } from '../../../domain/repositories/FeedRepository';
+import { GetFeedUseCase } from '../../../application/use-cases/GetFeedUseCase';
+import { PublishPostUseCase } from '../../../application/use-cases/PublishPostUseCase';
+import { ToggleLikeUseCase } from '../../../application/use-cases/ToggleLikeUseCase';
+import { feedRepository } from '../../../application/services/postService';
 import { useAuth } from '../../auth/AuthContext';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
@@ -9,7 +13,16 @@ export const FILTER_CATEGORIES = [
   'Todos', 'Diagnóstico IA', 'Vagas', 'Manejo', 'Pragas', 'Irrigação',
 ];
 
-// ─── HOOK ─────────────────────────────────────────────────────────────────────
+// ─── USE-CASE INSTANCES ───────────────────────────────────────────────────────
+// Instanciados uma única vez com o repositório injetado.
+
+const getFeedUseCase = new GetFeedUseCase(feedRepository);
+const publishPostUseCase = new PublishPostUseCase(feedRepository);
+const toggleLikeUseCase = new ToggleLikeUseCase(feedRepository);
+
+// ─── FEED VIEW MODEL ─────────────────────────────────────────────────────────
+// Hook que atua como FeedViewModel conforme diagrama de classes da Wiki.
+// Gerencia o estado reativo e delega lógica de negócio aos Use-Cases.
 
 export function useFeed(initialFilter = 'Todos') {
   const { user } = useAuth();
@@ -24,7 +37,7 @@ export function useFeed(initialFilter = 'Todos') {
   const page = useRef(1);
   const currentFilter = useRef(activeFilter);
 
-  // ─── FETCH ──────────────────────────────────────────────────────────────────
+  // ─── LOAD FEED (via GetFeedUseCase) ───────────────────────────────────────
 
   const loadPosts = useCallback(async (filter: string, reset = false) => {
     if (reset) {
@@ -37,7 +50,7 @@ export function useFeed(initialFilter = 'Todos') {
     setError(null);
 
     try {
-      const data = await postService.fetchPosts(page.current, filter);
+      const data = await getFeedUseCase.execute(page.current, filter);
       setPosts((prev) => reset ? data : [...prev, ...data]);
       if (data.length === 0) setHasMore(false);
       else page.current += 1;
@@ -68,10 +81,13 @@ export function useFeed(initialFilter = 'Todos') {
     loadPosts(activeFilter);
   }
 
-  // ─── CURTIDA ────────────────────────────────────────────────────────────────
+  // ─── TOGGLE LIKE (via ToggleLikeUseCase) ──────────────────────────────────
 
   async function toggleLike(postId: number | string) {
     if (!user) return;
+
+    const post = posts.find((p) => p.id === postId);
+    if (!post) return;
 
     // optimistic update
     setPosts((prev) =>
@@ -83,13 +99,7 @@ export function useFeed(initialFilter = 'Todos') {
     );
 
     try {
-      const post = posts.find((p) => p.id === postId);
-      if (!post) return;
-      if (post.liked) {
-        await postService.unlikePost(postId, user.id);
-      } else {
-        await postService.likePost(postId, user.id);
-      }
+      await toggleLikeUseCase.execute(postId, user.id, post.liked);
     } catch {
       // reverte se falhar
       setPosts((prev) =>
@@ -102,14 +112,14 @@ export function useFeed(initialFilter = 'Todos') {
     }
   }
 
-  // ─── PUBLICAÇÃO ─────────────────────────────────────────────────────────────
+  // ─── PUBLISH POST (via PublishPostUseCase) ────────────────────────────────
 
   async function publishPost(type: PostType, input: Omit<PublishPostInput, 'authorId' | 'authorName' | 'authorInitials' | 'authorVerified'>) {
     if (!user) throw new Error('Usuário não autenticado');
 
     setIsPublishing(true);
     try {
-      const newPost = await postService.publishPost(type, {
+      const newPost = await publishPostUseCase.execute(type, {
         ...input,
         authorId: user.id,
         authorName: user.name ?? 'Usuário',
