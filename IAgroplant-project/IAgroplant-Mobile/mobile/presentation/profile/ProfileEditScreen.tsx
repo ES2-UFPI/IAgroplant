@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../auth/AuthContext';
 
 export function ProfileEditScreen() {
   const navigation = useNavigation();
+  const { user } = useAuth();
 
   // Estados simples para os inputs
-  const [name, setName] = useState('João Agricultor');
-  const [email, setEmail] = useState('joao.agro@exemplo.com');
+  const [name, setName] = useState(user?.name ?? 'João Agricultor');
+  const [email, setEmail] = useState(user?.email ?? 'joao.agro@exemplo.com');
 
   const handleSave = () => {
     // Aqui no futuro ficará a chamada para a API (Application/Domain)

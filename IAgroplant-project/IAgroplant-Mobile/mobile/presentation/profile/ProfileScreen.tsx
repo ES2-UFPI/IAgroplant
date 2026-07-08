@@ -2,28 +2,23 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ProfileAvatar } from './components/ProfileAvatar';
+import { useAuth } from '../auth/AuthContext';
 
 export function ProfileScreen() {
   const navigation = useNavigation<any>();
-
-  // Mock de dados do usuário
-  const user = {
-    name: 'João Agricultor',
-    email: 'joao.agro@exemplo.com',
-    role: 'Produtor Rural',
-  };
+  const { user } = useAuth();
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <ProfileAvatar name={user.name} size={100} />
-        <Text style={styles.name}>{user.name}</Text>
-        <Text style={styles.role}>{user.role}</Text>
+        <ProfileAvatar name={user?.name ?? 'Usuário'} size={100} />
+        <Text style={styles.name}>{user?.name ?? 'Usuário'}</Text>
+        <Text style={styles.role}>{user?.role ?? 'Perfil sem dados'}</Text>
       </View>
 
       <View style={styles.infoSection}>
         <Text style={styles.sectionTitle}>Dados de Contato</Text>
-        <Text style={styles.infoText}>E-mail: {user.email}</Text>
+        <Text style={styles.infoText}>E-mail: {user?.email ?? '-'}</Text>
       </View>
 
       <TouchableOpacity 

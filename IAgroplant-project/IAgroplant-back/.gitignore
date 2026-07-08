@@ -1,2 +1,10 @@
 estrutura.txt
 node_modules/
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+db.sqlite3
