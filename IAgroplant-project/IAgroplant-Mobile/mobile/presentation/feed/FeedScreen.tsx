@@ -16,12 +16,7 @@ import { ComposeBox } from './components/ComposeBox';
 import { useFeed } from './hooks/useFeed';
 import { Post } from './types/post.types';
 
-type FeedScreenProps = {
-  title?: string;
-  initialFilter?: string;
-};
-
-export function FeedScreen({ title = 'IAgroplant', initialFilter = 'Todos' }: FeedScreenProps) {
+export function FeedScreen() {
   const {
     posts,
     activeFilter,
@@ -35,7 +30,7 @@ export function FeedScreen({ title = 'IAgroplant', initialFilter = 'Todos' }: Fe
     toggleLike,
     publishPost,
     refresh,
-  } = useFeed(initialFilter);
+  } = useFeed();
 
   const [showCompose, setShowCompose] = useState(false);
 
@@ -76,7 +71,7 @@ export function FeedScreen({ title = 'IAgroplant', initialFilter = 'Todos' }: Fe
           <View style={styles.logo}>
             <Text style={styles.logoEmoji}>🌱</Text>
           </View>
-          <Text style={styles.logoText}>{title}</Text>
+          <Text style={styles.logoText}>IAgroplant</Text>
         </View>
         <TouchableOpacity
           onPress={() => setShowCompose((v) => !v)}

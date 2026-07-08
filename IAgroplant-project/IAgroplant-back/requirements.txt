@@ -9,5 +9,3 @@ psycopg2-binary>=2.9
 
 pytest>=8.0
 pytest-django>=4.8
-
-Pillow>=11.0.0
