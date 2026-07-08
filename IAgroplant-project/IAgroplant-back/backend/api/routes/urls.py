@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 from django.urls import include, path
 
 
@@ -21,6 +22,20 @@ urlpatterns = [
         "",
         include(
             "backend.api.routes.opportunities_urls"
+        )
+    ),
+
+    path(
+        "",
+        include(
+            "backend.api.routes.posts_urls"
+        )
+    ),
+
+    path(
+        "",
+        include(
+            "backend.api.routes.users_urls"
         )
     ),
 

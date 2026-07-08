@@ -9,10 +9,14 @@ from domains.auth.domain.repositories.auth_repository import AuthRepository
 
 class SupabaseAuthRepository(AuthRepository):
 
-    def __init__(self):
-        url: str = config("SUPABASE_URL")
-        key: str = config("SUPABASE_SERVICE_ROLE_KEY")
-        self._client: Client = create_client(url, key)
+    def __init__(self, client: Optional[Client] = None):
+        if client is not None:
+            self._client = client
+        else:
+            url: str = config("SUPABASE_URL")
+            key: str = config("SUPABASE_SERVICE_ROLE_KEY")
+            self._client = create_client(url, key)
+
 
     def find_by_email(self, email: str) -> Optional[User]:
         response = (
@@ -66,8 +70,19 @@ class SupabaseAuthRepository(AuthRepository):
             photo_url=data.get("photo_url"),
         )
 
-    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        return bcrypt.checkpw(
-            plain_password.encode("utf-8"),
-            hashed_password.encode("utf-8"),
-        )
+    def validate_password(
+        self,
+        email: str,
+        password: str,
+    ) -> bool:
+        user = self.find_by_email(email)
+        if not user or not user.password_hash:
+            return False
+        try:
+            return bcrypt.checkpw(
+                password.encode("utf-8"),
+                user.password_hash.encode("utf-8"),
+            )
+        except Exception:
+            return False
+

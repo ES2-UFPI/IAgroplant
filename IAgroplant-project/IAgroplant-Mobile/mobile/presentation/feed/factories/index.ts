@@ -1,4 +1,4 @@
-import { Post, PostType } from '../types/post.types';
+import { Post, PostType } from '../../../domain/entities/post.entity';
 import { PostFactory } from './PostFactory';
 import {
   SimplePostFactory,

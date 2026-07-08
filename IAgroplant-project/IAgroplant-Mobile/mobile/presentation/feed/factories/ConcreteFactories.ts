@@ -1,5 +1,5 @@
 import { PostFactory } from './PostFactory';
-import { BasePost, SimplePost, DiagnosticPost, OpportunityPost } from '../types/post.types';
+import { BasePost, SimplePost, DiagnosticPost, OpportunityPost } from '../../../domain/entities/post.entity';
 
 // ─── SIMPLE POST FACTORY ──────────────────────────────────────────────────────
 

@@ -14,9 +14,8 @@ from domains.notifications.application.use_cases.notify_chat_message_use_case im
     NotifyChatMessageUseCase,
     NotifyChatMessageInput,
 )
-from domains.notifications.infrastructure.persistence.postgres_notification_repository import (
-    PostgresNotificationRepository,
-)
+from shared.utils.repository_factory import get_notification_repository
+
 
 
 class GetUserNotificationsView(APIView):
@@ -26,7 +25,7 @@ class GetUserNotificationsView(APIView):
 
     def get(self, request):
         try:
-            repo = PostgresNotificationRepository()
+            repo = get_notification_repository()
             use_case = GetUserNotificationsUseCase(notification_repository=repo)
             result = use_case.execute(
                 GetUserNotificationsInput(
@@ -60,7 +59,7 @@ class MarkNotificationReadView(APIView):
 
     def patch(self, request, notification_id):
         try:
-            repo = PostgresNotificationRepository()
+            repo = get_notification_repository()
             use_case = MarkNotificationReadUseCase(notification_repository=repo)
             result = use_case.execute(
                 MarkNotificationReadInput(
@@ -85,7 +84,7 @@ class NotifyChatMessageView(APIView):
 
     def post(self, request):
         try:
-            repo = PostgresNotificationRepository()
+            repo = get_notification_repository()
             use_case = NotifyChatMessageUseCase(notification_repository=repo)
             result = use_case.execute(
                 NotifyChatMessageInput(

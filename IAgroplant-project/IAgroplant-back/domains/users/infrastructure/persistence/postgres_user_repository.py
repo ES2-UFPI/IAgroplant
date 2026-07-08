@@ -27,6 +27,19 @@ class PostgresUserRepository(UserRepository):
                 especialidades=["Manejo de Pragas", "Solo"],
             )
         )
+        # Mock student for proximity notification testing
+        PostgresUserRepository._users.append(
+            User(
+                id="estudante-1",
+                email="estudante@teste.com",
+                name="Estudante Piauí",
+                role="estudante",
+                is_active=True,
+                region="Piauí",
+                certificado=False,
+                especialidades=["Culturas Anuais"],
+            )
+        )
 
     def get_by_id(self, user_id: str) -> Optional[User]:
         for u in PostgresUserRepository._users:
@@ -41,3 +54,10 @@ class PostgresUserRepository(UserRepository):
                 return user
         PostgresUserRepository._users.append(user)
         return user
+
+    def find_by_role_and_region(self, role: str, region: str) -> List[User]:
+        return [
+            u for u in PostgresUserRepository._users
+            if u.role.lower() == role.lower() and (u.region or "").lower() == region.lower()
+        ]
+

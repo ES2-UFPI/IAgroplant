@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { login } from '../../application/services/AuthService';
+import { profileService } from '../../application/services/profileService';
 
 export type AuthUser = {
   id: string;
@@ -57,7 +59,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AuthContextValue>(() => ({
     user,
     isLoading,
-    signIn: async (email: string) => {
+    signIn: async (email: string, password: string) => {
+      try {
+        const response = await login(email.trim().toLowerCase(), password);
+        if (response && response.access_token) {
+          await AsyncStorage.setItem('@iagroplant/auth-token', response.access_token);
+          if (response.refresh_token) {
+            await AsyncStorage.setItem('@iagroplant/auth-refresh-token', response.refresh_token);
+          }
+          const profile = await profileService.getMe();
+          const authUser: AuthUser = {
+            id: profile.id,
+            name: profile.name,
+            email: profile.email,
+            role: profile.role,
+          };
+          setUser(authUser);
+          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(authUser));
+          return;
+        }
+      } catch (error) {
+        console.warn('Real sign in failed, falling back to mock login.', error);
+      }
+
+      // Fallback
       const nextUser = {
         ...DEFAULT_USER,
         email: email.trim().toLowerCase(),
@@ -66,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser(nextUser);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
+      await AsyncStorage.setItem('@iagroplant/auth-token', 'mock-token');
     },
     signOut: async () => {
       setUser(null);

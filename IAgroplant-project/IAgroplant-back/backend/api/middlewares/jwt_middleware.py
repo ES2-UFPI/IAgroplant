@@ -117,6 +117,7 @@ class JWTMiddleware:
 
 
 
+
             if not user or not user.is_active:
 
 

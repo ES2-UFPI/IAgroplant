@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status, serializers
 from rest_framework.parsers import MultiPartParser, FormParser
 
-from domains.users.infrastructure.persistence.postgres_user_repository import PostgresUserRepository
+from shared.utils.repository_factory import get_user_repository
 from domains.users.application.use_cases.get_profile_use_case import GetProfileUseCase
 from domains.users.application.use_cases.update_profile_use_case import UpdateProfileUseCase, UpdateProfileInput
 from domains.users.application.use_cases.update_profile_photo_use_case import UpdateProfilePhotoUseCase
@@ -47,7 +47,7 @@ class MeProfileView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-        repo = PostgresUserRepository()
+        repo = get_user_repository()
         use_case = GetProfileUseCase(repository=repo)
         profile = use_case.execute(current_user)
 
@@ -66,7 +66,7 @@ class MeProfileView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        repo = PostgresUserRepository()
+        repo = get_user_repository()
         use_case = UpdateProfileUseCase(repository=repo)
 
         try:
@@ -108,7 +108,7 @@ class MeProfilePhotoView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        repo = PostgresUserRepository()
+        repo = get_user_repository()
         storage = CloudinaryStorageService()
         use_case = UpdateProfilePhotoUseCase(repository=repo, storage_service=storage)
 

@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status, serializers
 
 # Import core elements
-from domains.opportunities.infrastructure.persistence.postgres_opportunity_repository import PostgresOpportunityRepository
+from shared.utils.repository_factory import get_opportunity_repository
 from domains.opportunities.infrastructure.notifications.notification_service import NotificationService
 from domains.opportunities.application.use_cases.create_vacancy_use_case import CreateVacancyUseCase, CreateVacancyInput
 from domains.opportunities.application.use_cases.search_vacancies_use_case import SearchVacanciesUseCase, SearchFilters
@@ -57,7 +57,7 @@ class ListCreateOpportunitiesView(APIView):
         culture = request.query_params.get("culture")
         vacancy_type = request.query_params.get("vacancy_type")
 
-        repo = PostgresOpportunityRepository()
+        repo = get_opportunity_repository()
         use_case = SearchVacanciesUseCase(repository=repo)
         
         vacancies = use_case.execute(
@@ -80,7 +80,7 @@ class ListCreateOpportunitiesView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        repo = PostgresOpportunityRepository()
+        repo = get_opportunity_repository()
         use_case = CreateVacancyUseCase(repository=repo)
 
         try:
@@ -125,7 +125,7 @@ class ApplyOpportunityView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-        repo = PostgresOpportunityRepository()
+        repo = get_opportunity_repository()
         notifier = NotificationService()
         use_case = ApplyToVacancyUseCase(repository=repo, notification_service=notifier)
 
@@ -172,7 +172,7 @@ class ListApplicationsView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-        repo = PostgresOpportunityRepository()
+        repo = get_opportunity_repository()
         use_case = GetUserApplicationsUseCase(repository=repo)
         
         applications = use_case.execute(user_id=current_user.id)
