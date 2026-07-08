@@ -70,8 +70,19 @@ class SupabaseAuthRepository(AuthRepository):
             photo_url=data.get("photo_url"),
         )
 
-    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        return bcrypt.checkpw(
-            plain_password.encode("utf-8"),
-            hashed_password.encode("utf-8"),
-        )
+    def validate_password(
+        self,
+        email: str,
+        password: str,
+    ) -> bool:
+        user = self.find_by_email(email)
+        if not user or not user.password_hash:
+            return False
+        try:
+            return bcrypt.checkpw(
+                password.encode("utf-8"),
+                user.password_hash.encode("utf-8"),
+            )
+        except Exception:
+            return False
+
