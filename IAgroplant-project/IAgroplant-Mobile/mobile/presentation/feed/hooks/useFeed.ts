@@ -70,7 +70,7 @@ export function useFeed(initialFilter = 'Todos') {
 
   // ─── CURTIDA ────────────────────────────────────────────────────────────────
 
-  async function toggleLike(postId: number) {
+  async function toggleLike(postId: number | string) {
     if (!user) return;
 
     // optimistic update

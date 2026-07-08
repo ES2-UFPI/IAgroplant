@@ -15,7 +15,7 @@ export interface PostBadge {
 }
 
 export interface BasePost {
-  id: number;
+  id: number | string;
   type: PostType;
   author: PostAuthor;
   content: string;

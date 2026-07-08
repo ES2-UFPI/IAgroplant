@@ -1,5 +1,6 @@
 import { Post, PostType } from '../../presentation/feed/types/post.types';
 import { createPost } from '../../presentation/feed/factories';
+import { get, post } from '../../infrastructure/api/api';
 
 // ─── INTERFACE ────────────────────────────────────────────────────────────────
 // Contrato que qualquer implementação de serviço de posts deve seguir.
@@ -8,8 +9,8 @@ import { createPost } from '../../presentation/feed/factories';
 
 export interface IPostService {
   fetchPosts(page: number, filter: string): Promise<Post[]>;
-  likePost(postId: number, userId: string): Promise<void>;
-  unlikePost(postId: number, userId: string): Promise<void>;
+  likePost(postId: number | string, userId: string): Promise<void>;
+  unlikePost(postId: number | string, userId: string): Promise<void>;
   publishPost(type: PostType, data: PublishPostInput): Promise<Post>;
 }
 
@@ -161,10 +162,70 @@ export class MockPostService implements IPostService {
   }
 }
 
-// ─── SINGLETON ────────────────────────────────────────────────────────────────
-// Troque MockPostService por SupabasePostService aqui quando estiver pronto.
+// ─── API IMPLEMENTATION ───────────────────────────────────────────────────────
 
-export const postService: IPostService = new MockPostService();
+export class ApiPostService implements IPostService {
+  private mockService = new MockPostService();
+
+  async fetchPosts(page: number, filter: string): Promise<Post[]> {
+    try {
+      const data = await get('/posts', { filter });
+      if (Array.isArray(data)) {
+        return data;
+      }
+    } catch (error: any) {
+      console.log('Erro ao carregar posts da API, servindo dados locais...', error.message);
+    }
+    return this.mockService.fetchPosts(page, filter);
+  }
+
+  async likePost(postId: number | string, userId: string): Promise<void> {
+    try {
+      await post(`/posts/${postId}/like`);
+      return;
+    } catch (error: any) {
+      console.log('Erro ao curtir post na API, executando localmente...', error.message);
+    }
+    return this.mockService.likePost(Number(postId) || 0, userId);
+  }
+
+  async unlikePost(postId: number | string, userId: string): Promise<void> {
+    try {
+      await post(`/posts/${postId}/unlike`);
+      return;
+    } catch (error: any) {
+      console.log('Erro ao descurtir post na API, executando localmente...', error.message);
+    }
+    return this.mockService.unlikePost(Number(postId) || 0, userId);
+  }
+
+  async publishPost(type: PostType, data: PublishPostInput): Promise<Post> {
+    try {
+      const payload = {
+        type,
+        content: data.content,
+        image_url: data.image || null,
+        tags: data.tags,
+        region: data.region,
+        pathogen: data.pathogen || null,
+        severity: data.severity || null,
+        salary: data.salary || null,
+        duration: data.duration || null,
+      };
+      const response = await post('/posts', payload);
+      if (response && response.id) {
+        return response;
+      }
+    } catch (error: any) {
+      console.log('Erro ao publicar post na API, usando local fallback...', error.message);
+    }
+    return this.mockService.publishPost(type, data);
+  }
+}
+
+// ─── SINGLETON ────────────────────────────────────────────────────────────────
+
+export const postService: IPostService = new ApiPostService();
 
 // ─── UTIL ─────────────────────────────────────────────────────────────────────
 

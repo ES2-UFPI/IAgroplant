@@ -24,4 +24,18 @@ urlpatterns = [
         )
     ),
 
+    path(
+        "",
+        include(
+            "backend.api.routes.posts_urls"
+        )
+    ),
+
+    path(
+        "",
+        include(
+            "backend.api.routes.users_urls"
+        )
+    ),
+
 ]
