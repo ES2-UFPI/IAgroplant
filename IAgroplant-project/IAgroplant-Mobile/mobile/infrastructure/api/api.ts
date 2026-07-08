@@ -74,6 +74,17 @@ export async function put(url: string, data?: any) {
   }
 }
 
+export async function patch(url: string, data?: any) {
+  try {
+    const response = await api.patch(url, data);
+    return response.data;
+  } catch (error: any) {
+    console.warn(`PATCH ${url} failed, using local fallback.`, error.message);
+    throw error;
+  }
+}
+
+
 export async function uploadFile(url: string, fileUri: string, fieldName: string) {
   try {
     const filename = fileUri.split('/').pop() ?? `${fieldName}.jpg`;

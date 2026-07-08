@@ -9,10 +9,14 @@ from domains.auth.domain.repositories.auth_repository import AuthRepository
 
 class SupabaseAuthRepository(AuthRepository):
 
-    def __init__(self):
-        url: str = config("SUPABASE_URL")
-        key: str = config("SUPABASE_SERVICE_ROLE_KEY")
-        self._client: Client = create_client(url, key)
+    def __init__(self, client: Optional[Client] = None):
+        if client is not None:
+            self._client = client
+        else:
+            url: str = config("SUPABASE_URL")
+            key: str = config("SUPABASE_SERVICE_ROLE_KEY")
+            self._client = create_client(url, key)
+
 
     def find_by_email(self, email: str) -> Optional[User]:
         response = (

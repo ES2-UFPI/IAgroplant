@@ -10,6 +10,7 @@ import { ProfileScreen } from '../profile/ProfileScreen';
 import { ProfileEditScreen } from '../profile/ProfileEditScreen';
 import { OpportunitiesScreen } from '../opportunities/OpportunitiesScreen';
 import { ChatScreen } from '../chat/ChatScreen';
+import { NotificationsScreen } from '../notifications/NotificationsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -43,6 +44,13 @@ function HomeScreen({ navigation }: any) {
       </TouchableOpacity>
 
       <TouchableOpacity 
+        style={[styles.button, { backgroundColor: '#1e3a8a', marginTop: 10 }]}
+        onPress={() => navigation.navigate('Notifications')}
+      >
+        <Text style={styles.buttonText}>🔔 Notificações</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
         style={[styles.button, { backgroundColor: '#d97706', marginTop: 10 }]}
         onPress={() => navigation.navigate('Profile')}
       >
@@ -58,6 +66,7 @@ function HomeScreen({ navigation }: any) {
     </View>
   );
 }
+
 
 function AuthGate() {
   const { user, isLoading } = useAuth();
@@ -106,6 +115,12 @@ function AuthGate() {
               component={ProfileEditScreen} 
               options={{ title: 'Editar Perfil' }} 
             />
+            <Stack.Screen 
+              name="Notifications" 
+              component={NotificationsScreen} 
+              options={{ title: 'Notificações' }} 
+            />
+
           </>
         ) : (
           <Stack.Screen 

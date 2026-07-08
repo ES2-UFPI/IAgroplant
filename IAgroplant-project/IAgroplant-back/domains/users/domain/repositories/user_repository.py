@@ -12,3 +12,8 @@ class UserRepository(ABC):
     @abstractmethod
     def update(self, user: User) -> User:
         pass
+
+    @abstractmethod
+    def find_by_role_and_region(self, role: str, region: str) -> list[User]:
+        pass
+

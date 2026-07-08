@@ -1,7 +1,6 @@
 from django.http import JsonResponse
 from domains.auth.domain.services.token_service import TokenService
-#from domains.auth.infrastructure.persistence.supabase_auth_repository import SupabaseAuthRepository
-from domains.auth.infrastructure.persistence.postgres_auth_repository import PostgresAuthRepository
+from shared.utils.repository_factory import get_auth_repository
 # Rotas que NÃO precisam de autenticação
 PUBLIC_ROUTES = [
     "/api/auth/login",
@@ -37,9 +36,9 @@ class JWTMiddleware:
                 return JsonResponse({"detail": "Token inválido."}, status=401)
 
             # Injeta o usuário no request para uso nas views
-            #repo = SupabaseAuthRepository()
-            repo = PostgresAuthRepository()
+            repo = get_auth_repository()
             user = repo.find_by_id(payload["sub"])
+
 
             if not user or not user.is_active:
                 return JsonResponse({"detail": "Usuário não encontrado."}, status=401)
