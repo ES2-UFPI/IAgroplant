@@ -27,5 +27,3 @@ class NotificationPreference:
     user_id: str
     type: str
     enabled: bool
-
-    

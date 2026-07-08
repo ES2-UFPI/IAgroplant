@@ -41,7 +41,7 @@ class CreatePostUseCase:
         # Apenas agrônomos ou técnicos recebem badge de verificado por padrão no feed
         author_verified = input_data.author_verified
         role_normalized = input_data.author_role.lower()
-        if "agrônomo" in role_normalized or "técnico" in role_normalized or "fitopatologista" in role_normalized:
+        if "agrônom" in role_normalized or "técnic" in role_normalized or "fitopatolog" in role_normalized:
             author_verified = True
 
         # Iniciais do autor
