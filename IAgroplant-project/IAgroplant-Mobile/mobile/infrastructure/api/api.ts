@@ -4,17 +4,48 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Em emulador/simulador local, localhost (iOS) ou 10.0.2.2 (Android) funcionam.
 // Em um dispositivo físico via Expo Go, é preciso o IP de LAN da máquina que
 // roda o backend — defina EXPO_PUBLIC_API_URL em um .env.local para isso.
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000/api';
+//const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000/api';
+const API_URL = 'http://10.13.64.181:8000/api'
 
 const api = axios.create({
 
+
   baseURL: API_URL,
 
-  timeout: 5000,
+  timeout: 15000,
 
 });
 
 
+api.interceptors.request.use(
+
+  (config) => {
+
+
+    console.log("=================");
+    console.log(
+      "REQUEST:",
+      config.method,
+      config.baseURL + config.url
+    );
+
+
+    console.log(
+      "HEADERS:",
+      config.headers
+    );
+
+
+    console.log("=================");
+
+
+
+    return config;
+
+
+  }
+
+);
 
 // Interceptor to automatically add Bearer token
 
@@ -106,7 +137,7 @@ export async function get(
     return response.data;
 
 
-  } catch (error:any) {
+  } catch (error: any) {
 
 
     console.warn(
@@ -157,22 +188,22 @@ export async function post(
 
             isFormData
 
-            ?
+              ?
 
-            {
+              {
 
-              // Axios define automaticamente multipart boundary
+                // Axios define automaticamente multipart boundary
 
-            }
+              }
 
-            :
+              :
 
-            {
+              {
 
-              'Content-Type':
-                'application/json',
+                'Content-Type':
+                  'application/json',
 
-            },
+              },
 
         }
 
@@ -184,7 +215,7 @@ export async function post(
 
 
 
-  } catch (error:any) {
+  } catch (error: any) {
 
 
     console.warn(
