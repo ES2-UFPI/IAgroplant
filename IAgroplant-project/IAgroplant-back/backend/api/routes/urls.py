@@ -13,6 +13,13 @@ urlpatterns = [
     path(
         "opportunities/",
         include(
+            "backend.api.routes.notification_urls"
+        )
+    ),
+
+    path(
+        "",
+        include(
             "backend.api.routes.opportunities_urls"
         )
     ),

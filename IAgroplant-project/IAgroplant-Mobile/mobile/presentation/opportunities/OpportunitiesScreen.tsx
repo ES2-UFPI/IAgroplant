@@ -18,7 +18,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useOpportunities, OpportunitiesFilters } from './OportunidadesViewModel';
 import { Vaga } from '../../domain/entities/vaga.types';
 
-export function OpportunitiesScreen() {
+export function OpportunitiesScreen({ route }: any) {
   const { user, updateRole } = useAuth();
   const {
     vagas,
@@ -33,7 +33,8 @@ export function OpportunitiesScreen() {
     refresh,
   } = useOpportunities();
 
-  const [activeTab, setActiveTab] = useState<'list' | 'applications'>('list');
+  const initialTab = route?.params?.initialTab === 'applications' ? 'applications' : 'list';
+  const [activeTab, setActiveTab] = useState<'list' | 'applications'>(initialTab);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedVaga, setSelectedVaga] = useState<Vaga | null>(null);
   const [showMap, setShowMap] = useState(false);
@@ -797,7 +798,7 @@ const styles = StyleSheet.create({
   detailsHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   detailsTitle: { fontSize: 20, fontWeight: '800', color: '#111827', flex: 1, marginRight: 8 },
   detailsProducer: { fontSize: 14, fontWeight: '600', color: '#4B5563', marginTop: 6 },
-  detailDivider: { height: 0.5, backgroundColor: '#E5E7EB', my: 14, marginVertical: 14 },
+  detailDivider: { height: 0.5, backgroundColor: '#E5E7EB', marginVertical: 14 },
   detailSectionTitle: { fontSize: 14, fontWeight: '700', color: '#374151', marginBottom: 6 },
   detailsDesc: { fontSize: 14, color: '#4B5563', lineHeight: 22 },
   detailInfoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },

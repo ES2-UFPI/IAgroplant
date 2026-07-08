@@ -34,6 +34,10 @@ class SupabaseAuthRepository(AuthRepository):
             role=data.get("role", "user"),
             is_active=data.get("is_active", True),
             password_hash=data.get("password_hash"),
+            region=data.get("region"),
+            certificado=data.get("certificado", False),
+            especialidades=data.get("especialidades") or [],
+            photo_url=data.get("photo_url"),
         )
 
     def find_by_id(self, user_id: str) -> Optional[User]:
@@ -56,6 +60,10 @@ class SupabaseAuthRepository(AuthRepository):
             role=data.get("role", "user"),
             is_active=data.get("is_active", True),
             password_hash=data.get("password_hash"),
+            region=data.get("region"),
+            certificado=data.get("certificado", False),
+            especialidades=data.get("especialidades") or [],
+            photo_url=data.get("photo_url"),
         )
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:

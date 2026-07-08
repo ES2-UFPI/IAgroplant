@@ -1,33 +1,89 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ProfileAvatar } from './components/ProfileAvatar';
+import { VerifiedBadge } from './components/VerifiedBadge';
+import { SpecialtiesInput } from './components/SpecialtiesInput';
 import { useAuth } from '../auth/AuthContext';
+import { useProfile } from './ProfileViewModel';
+import { useOpportunities } from '../opportunities/OportunidadesViewModel';
+
+const MAX_APPLICATIONS_PREVIEW = 3;
 
 export function ProfileScreen() {
   const navigation = useNavigation<any>();
   const { user } = useAuth();
+  const { profile, isLoading, refresh } = useProfile();
+  const { candidaturas } = useOpportunities();
+
+  // O React Navigation mantém esta tela montada ao empilhar ProfileEdit por
+  // cima; sem isso, voltar de lá mostraria dados desatualizados (o fetch do
+  // useProfile só roda uma vez, no mount).
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
+  const name = profile?.name ?? user?.name ?? 'Usuário';
+  const role = profile?.role ?? user?.role ?? 'Perfil sem dados';
+  const email = profile?.email ?? user?.email ?? '-';
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <ProfileAvatar name={user?.name ?? 'Usuário'} size={100} />
-        <Text style={styles.name}>{user?.name ?? 'Usuário'}</Text>
-        <Text style={styles.role}>{user?.role ?? 'Perfil sem dados'}</Text>
+        <ProfileAvatar name={name} size={100} photoUrl={profile?.photo_url} />
+        <Text style={styles.name}>{name}</Text>
+        <Text style={styles.role}>{role}</Text>
+        {profile?.region && <Text style={styles.region}>📍 {profile.region}</Text>}
+        {profile?.certificado && <VerifiedBadge />}
       </View>
 
       <View style={styles.infoSection}>
         <Text style={styles.sectionTitle}>Dados de Contato</Text>
-        <Text style={styles.infoText}>E-mail: {user?.email ?? '-'}</Text>
+        <Text style={styles.infoText}>E-mail: {email}</Text>
       </View>
 
-      <TouchableOpacity 
+      <View style={styles.infoSection}>
+        <Text style={styles.sectionTitle}>Especialidades</Text>
+        <SpecialtiesInput value={profile?.especialidades ?? []} editable={false} />
+      </View>
+
+      <View style={styles.infoSection}>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Histórico de Candidaturas</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Opportunities', { initialTab: 'applications' })}
+          >
+            <Text style={styles.linkText}>Ver todas</Text>
+          </TouchableOpacity>
+        </View>
+
+        {candidaturas.length === 0 ? (
+          <Text style={styles.emptyText}>Nenhuma candidatura registrada ainda.</Text>
+        ) : (
+          candidaturas.slice(0, MAX_APPLICATIONS_PREVIEW).map((app) => (
+            <View key={app.id} style={styles.applicationRow}>
+              <Text style={styles.applicationTitle}>{app.vacancy_title || 'Vaga'}</Text>
+              <Text style={styles.applicationStatus}>{app.status}</Text>
+            </View>
+          ))
+        )}
+      </View>
+
+      <View style={styles.infoSection}>
+        <Text style={styles.sectionTitle}>Histórico de Diagnósticos</Text>
+        <Text style={styles.emptyText}>🔬 Em breve — funcionalidade em desenvolvimento.</Text>
+      </View>
+
+      <TouchableOpacity
         style={styles.editButton}
         onPress={() => navigation.navigate('ProfileEdit')}
+        disabled={isLoading}
       >
         <Text style={styles.editButtonText}>Editar Perfil</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -35,6 +91,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  content: {
     padding: 20,
   },
   header: {
@@ -52,6 +110,11 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 5,
   },
+  region: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    marginTop: 4,
+  },
   infoSection: {
     backgroundColor: '#fff',
     padding: 20,
@@ -61,7 +124,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
-    marginBottom: 30,
+    marginBottom: 20,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 18,
@@ -69,15 +138,44 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 10,
   },
+  linkText: {
+    fontSize: 13,
+    color: '#16A34A',
+    fontWeight: '700',
+  },
   infoText: {
     fontSize: 16,
     color: '#555',
+  },
+  emptyText: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    fontStyle: 'italic',
+  },
+  applicationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderTopWidth: 0.5,
+    borderTopColor: '#F3F4F6',
+  },
+  applicationTitle: {
+    fontSize: 14,
+    color: '#374151',
+    fontWeight: '500',
+    flex: 1,
+  },
+  applicationStatus: {
+    fontSize: 12,
+    color: '#D97706',
+    fontWeight: '700',
   },
   editButton: {
     backgroundColor: '#2e7d32',
     paddingVertical: 15,
     borderRadius: 8,
     alignItems: 'center',
+    marginBottom: 20,
   },
   editButtonText: {
     color: '#fff',
