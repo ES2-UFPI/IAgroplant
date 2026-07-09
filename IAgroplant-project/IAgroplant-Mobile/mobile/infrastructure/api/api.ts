@@ -26,7 +26,7 @@ api.interceptors.request.use(
     console.log(
       "REQUEST:",
       config.method,
-      config.baseURL + config.url
+      (config.baseURL ?? '') + (config.url ?? '')
     );
 
 

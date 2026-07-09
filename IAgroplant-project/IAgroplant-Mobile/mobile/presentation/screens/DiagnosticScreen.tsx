@@ -20,6 +20,7 @@ import {
 
 import DiagnosticFacade from "../../facade/DiagnosticFacade";
 
+const addLog = (...args: any[]) => console.log(...args);
 
 export default function DiagnosticScreen() {
 

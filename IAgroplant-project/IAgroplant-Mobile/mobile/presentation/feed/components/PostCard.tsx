@@ -101,7 +101,7 @@ function OpportunityInfo({ post }: { post: OpportunityPost }) {
 
 interface PostCardProps {
   post: Post;
-  onLike: (id: number) => void;
+  onLike: (id: number | string) => void;
 }
 
 export function PostCard({ post, onLike }: PostCardProps) {

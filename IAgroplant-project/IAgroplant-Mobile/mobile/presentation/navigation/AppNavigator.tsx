@@ -177,8 +177,8 @@ function MainTabNavigator({ navigation, route }: any) {
       <View style={{ flex: 1 }}>
         {activeTab === 'feed' && <FeedScreen navigation={navigation} />}
         {activeTab === 'opportunities' && <OpportunitiesScreen navigation={navigation} />}
-        {activeTab === 'chat' && <ChatScreen navigation={navigation} />}
-        {activeTab === 'profile' && <ProfileScreen navigation={navigation} />}
+        {activeTab === 'chat' && <ChatScreen />}
+        {activeTab === 'profile' && <ProfileScreen />}
       </View>
 
       {/* FLOATING ACTION BUTTON - GEMINI CO-PILOT (AI DIAGNOSTIC) */}

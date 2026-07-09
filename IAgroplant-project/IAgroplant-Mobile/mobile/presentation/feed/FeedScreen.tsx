@@ -19,11 +19,12 @@ import { Post } from './types/post.types';
 import { useAuth } from '../auth/AuthContext';
 
 type FeedScreenProps = {
+  navigation?: any;
   title?: string;
   initialFilter?: string;
 };
 
-export function FeedScreen({ navigation, title = 'IAgroplant', initialFilter = 'Todos' }: any) {
+export function FeedScreen({ navigation, title = 'IAgroplant', initialFilter = 'Todos' }: FeedScreenProps) {
   const { user } = useAuth();
   const {
     posts,
@@ -46,6 +47,8 @@ export function FeedScreen({ navigation, title = 'IAgroplant', initialFilter = '
     publishPost(type, {
       ...input,
       authorRole: user?.role ?? 'Estudante',
+      region: 'Teresina',
+      tags: [],
     }).then(() => setShowCompose(false))
       .catch((e) => alert('Erro ao publicar. Tente novamente.'));
   }
