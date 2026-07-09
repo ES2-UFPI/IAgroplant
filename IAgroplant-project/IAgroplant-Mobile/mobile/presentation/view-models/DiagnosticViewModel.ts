@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import DiagnosticFacade
-from "../../application/facade/DiagnosticFacade";
+from "../../facade/DiagnosticFacade";
 
 export function useDiagnosticViewModel(){
 

@@ -9,7 +9,7 @@ import {
 import { PostType } from '../types/post.types';
 
 interface ComposeBoxProps {
-  onPublish: (type: PostType, content: string) => void;
+  onPublish: (type: PostType, input: { content: string; image?: string }) => void;
   onClose: () => void;
 }
 
@@ -28,11 +28,16 @@ const PLACEHOLDERS: Record<PostType, string> = {
 export function ComposeBox({ onPublish, onClose }: ComposeBoxProps) {
   const [type, setType] = useState<PostType>('simple');
   const [content, setContent] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
 
   function handlePublish() {
     if (!content.trim()) return;
-    onPublish(type, content);
+    onPublish(type, {
+      content,
+      image: imageUrl.trim() !== '' ? imageUrl.trim() : undefined,
+    });
     setContent('');
+    setImageUrl('');
   }
 
   return (
@@ -62,6 +67,15 @@ export function ComposeBox({ onPublish, onClose }: ComposeBoxProps) {
         numberOfLines={4}
         style={styles.input}
         textAlignVertical="top"
+      />
+
+      {/* Image input */}
+      <TextInput
+        value={imageUrl}
+        onChangeText={setImageUrl}
+        placeholder="Link da imagem (opcional) - ex: https://..."
+        placeholderTextColor="#9CA3AF"
+        style={[styles.input, { minHeight: 44, marginTop: 8 }]}
       />
 
       {/* Actions */}

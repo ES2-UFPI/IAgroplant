@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { login } from '../../application/services/AuthService';
 import { profileService } from '../../application/services/profileService';
+import { setOpportunitiesMockUser } from '../../application/services/oportunidadesService';
 
 export type AuthUser = {
   id: string;
@@ -82,14 +83,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.warn('Real sign in failed, falling back to mock login.', error);
       }
 
-      // Fallback
+      // Fallback dinâmico com base no e-mail selecionado
+      const emailLower = email.trim().toLowerCase();
+      let mockName = 'Usuário';
+      let mockRole = 'Estudante';
+      
+      if (emailLower.includes('joao')) {
+        mockName = 'João Agricultor';
+        mockRole = 'Produtor Rural';
+      } else if (emailLower.includes('arthur')) {
+        mockName = 'Arthur Estudante';
+        mockRole = 'Estudante';
+      } else if (emailLower.includes('tecnico')) {
+        mockName = 'Cláudio';
+        mockRole = 'Técnico';
+      }
+
       const nextUser = {
-        ...DEFAULT_USER,
-        email: email.trim().toLowerCase(),
-        id: `demo-${Date.now()}`,
+        id: `demo-${emailLower.split('@')[0]}`,
+        name: mockName,
+        email: emailLower,
+        role: mockRole,
       };
 
       setUser(nextUser);
+
+      // Sincroniza o mock de perfil no profileService
+      profileService.setMockProfile({
+        id: nextUser.id,
+        name: nextUser.name,
+        email: nextUser.email,
+        role: nextUser.role,
+        region: 'Teresina, PI',
+        certificado: mockRole === 'Técnico' || mockRole === 'Produtor Rural',
+        especialidades: mockRole === 'Estudante' ? ['Soja', 'Milho', 'Fitopatologia'] : ['Manejo integrado', 'Consultoria'],
+        photo_url: null,
+      });
+
+      // Sincroniza o mock user no oportunidadesService
+      setOpportunitiesMockUser({
+        id: nextUser.id,
+        name: nextUser.name,
+        role: nextUser.role,
+      });
+
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
       await AsyncStorage.setItem('@iagroplant/auth-token', 'mock-token');
     },
@@ -102,6 +139,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const updated = { ...user, role };
         setUser(updated);
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+        // Sincroniza mocks locais
+        setOpportunitiesMockUser({
+          id: user.id,
+          name: user.name,
+          role: role,
+        });
+
+        try {
+          const currentProfile = await profileService.getMe();
+          profileService.setMockProfile({ ...currentProfile, role });
+        } catch (e) {
+          console.log('Erro ao atualizar mock de perfil em updateRole:', e);
+        }
       }
     },
   }), [isLoading, user]);

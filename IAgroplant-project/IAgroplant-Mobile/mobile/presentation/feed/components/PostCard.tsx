@@ -41,7 +41,8 @@ function TypeBadge({ badge }: { badge: Post['badge'] }) {
 
 // ─── TAG LIST ─────────────────────────────────────────────────────────────────
 
-function TagList({ tags }: { tags: string[] }) {
+function TagList({ tags }: { tags?: string[] }) {
+  if (!tags || !Array.isArray(tags)) return null;
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll}>
       {tags.map((tag) => (
@@ -100,7 +101,7 @@ function OpportunityInfo({ post }: { post: OpportunityPost }) {
 
 interface PostCardProps {
   post: Post;
-  onLike: (id: number) => void;
+  onLike: (id: number | string) => void;
   canModerate?: boolean;
   currentUserId?: string;
   onVerify?: (id: number | string) => void;

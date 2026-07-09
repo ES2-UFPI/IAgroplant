@@ -1,5 +1,6 @@
 import { Notification } from '../../domain/entities/notification.types';
 import { get, patch } from '../../infrastructure/api/api';
+import { oportunidadesService } from './oportunidadesService';
 
 // ─── LOCAL MOCK STATE ─────────────────────────────────────────────────────────
 let LOCAL_NOTIFICATIONS: Notification[] = [
@@ -41,12 +42,34 @@ export class NotificationService {
       const data = await get('/notifications/');
       if (Array.isArray(data)) {
         LOCAL_NOTIFICATIONS = data;
-        return data;
       }
     } catch (e) {
       console.log('Backend indisponível, servindo notificações locais...');
     }
-    return LOCAL_NOTIFICATIONS;
+
+    const list = [...LOCAL_NOTIFICATIONS];
+    try {
+      const apps = await oportunidadesService.getApplications('mock-token');
+      apps.forEach((app) => {
+        const notifId = `notif-app-${app.id}`;
+        const exists = list.some(n => n.id === notifId);
+        if (!exists) {
+          list.unshift({
+            id: notifId,
+            user_id: 'demo-user',
+            title: 'Nova Candidatura Recebida! 🚜',
+            body: `${app.user_name} (${app.user_role}) se candidatou para a vaga de "${app.vacancy_title}" em ${app.vacancy_region}.`,
+            type: 'OPPORTUNITY',
+            is_read: false,
+            created_at: app.applied_at,
+          });
+        }
+      });
+    } catch (e) {
+      console.log('Erro ao mesclar candidaturas locais com notificações:', e);
+    }
+
+    return list;
   }
 
   async markAsRead(notificationId: string): Promise<boolean> {

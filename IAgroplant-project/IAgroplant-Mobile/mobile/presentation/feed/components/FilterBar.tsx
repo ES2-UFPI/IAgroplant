@@ -31,7 +31,12 @@ export function FilterBar({ activeFilter, onSelect }: FilterBarProps) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flexGrow: 0 },
+  scroll: { 
+    flexGrow: 0, 
+    backgroundColor: '#fff',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E7EB',
+  },
   container: { paddingHorizontal: 14, paddingVertical: 10, gap: 8 },
   chip: {
     paddingHorizontal: 14,

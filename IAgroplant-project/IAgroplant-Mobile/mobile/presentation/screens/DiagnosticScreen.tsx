@@ -11,6 +11,7 @@ import {
     ActivityIndicator,
     ScrollView,
     StyleSheet,
+    Alert,
 } from "react-native";
 
 import {
@@ -19,108 +20,297 @@ import {
 
 import DiagnosticFacade from "../../facade/DiagnosticFacade";
 
+const addLog = (...args: any[]) => console.log(...args);
+
 export default function DiagnosticScreen() {
+
 
     const facade =
         new DiagnosticFacade();
 
-    const [
-        image,
-        setImage,
-    ] = useState<any>(null);
 
-    const [
-        description,
-        setDescription,
-    ] = useState("");
+    const [image, setImage] =
+        useState<any>(null);
 
-    const [
-        loading,
-        setLoading,
-    ] = useState(false);
 
-    const [
-        result,
-        setResult,
-    ] = useState<any>(null);
+    const [description, setDescription] =
+        useState("");
 
-    async function chooseImage() {
 
-        const img =
-            await selectImage();
+    const [loading, setLoading] =
+        useState(false);
 
-        if (img) {
 
-            console.log("========== IMAGEM SELECIONADA ==========");
-            console.log(img);
+    const [result, setResult] =
+        useState<any>(null);
 
-            setImage(img);
+
+    const [debug, setDebug] =
+        useState<string>("");
+
+
+    /*function addLog(message:string){
+
+        console.log(message);
+
+        setDebug(
+            old =>
+            old + "\n" + message
+        );
+
+    }*/
+
+
+
+    async function chooseImage(){
+
+
+        /*addLog(
+            "Selecionando imagem..."
+        );*/
+
+
+        try{
+
+
+            const img =
+                await selectImage();
+
+
+            /*addLog(
+                "Retorno do ImagePicker:"
+            );*/
+
+
+            /*console.log(img);*/
+
+
+            if(img){
+
+
+                /*addLog(
+                    "Imagem recebida com sucesso"
+                );*/
+
+
+                setImage(img);
+
+
+            }
+            else{
+
+
+                addLog(
+                    "Nenhuma imagem selecionada"
+                );
+
+
+            }
+
+
+        }
+        catch(error:any){
+
+
+            addLog(
+                "Erro no ImagePicker:"
+            );
+
+
+            addLog(
+                error.message
+            );
+
 
         }
 
-    }
-
-    async function diagnose() {
-
-    if (!image) {
-
-        alert("Selecione uma imagem.");
-
-        return;
 
     }
 
-    console.log("========== DIAGNÓSTICO ==========");
-    console.log("Imagem:");
-    console.log(image);
 
-    console.log("Descrição:");
-    console.log(description);
 
-    setLoading(true);
 
-    try {
+    async function diagnose(){
 
-        const response =
-            await facade.diagnose(
-                image,
-                description,
+
+        /*addLog(
+            "========== INICIO DIAGNOSTICO =========="
+        );*/
+
+
+
+        if(!image){
+
+
+            addLog(
+                "ERRO: nenhuma imagem selecionada"
             );
 
-        console.log("========== RESPOSTA ==========");
-        console.log(response);
 
-        setResult(response);
+            Alert.alert(
+                "Aviso",
+                "Selecione uma imagem primeiro."
+            );
+
+
+            return;
+
+        }
+
+
+
+        /*addLog(
+            "Imagem encontrada"
+        );
+
+
+        addLog(
+            JSON.stringify(
+                image,
+                null,
+                2
+            )
+        );*/
+
+
+        /*addLog(
+            "Descrição:"
+            +
+            description
+        );*/
+
+
+
+        setLoading(true);
+
+
+
+        try{
+
+
+           /* addLog(
+                "Chamando DiagnosticFacade..."
+            );*/
+
+
+
+            const response =
+                await facade.diagnose(
+
+                    image,
+
+                    description,
+
+                );
+
+
+
+            /*addLog(
+                "Resposta recebida do backend"
+            );*/
+
+
+           /* addLog(
+                JSON.stringify(
+                    response,
+                    null,
+                    2
+                )
+            );*/
+
+
+
+            setResult(response);
+
+
+
+        }
+        catch(error:any){
+
+
+
+            addLog(
+                "========== ERRO =========="
+            );
+
+
+
+            addLog(
+                error.message
+                ??
+                "Erro desconhecido"
+            );
+
+
+
+            if(error.response){
+
+
+                addLog(
+                    "Status HTTP:"
+                    +
+                    error.response.status
+                );
+
+
+                addLog(
+                    JSON.stringify(
+                        error.response.data,
+                        null,
+                        2
+                    )
+                );
+
+
+            }
+
+
+
+            Alert.alert(
+                "Erro",
+                "Falha ao realizar diagnóstico."
+            );
+
+
+
+        }
+        finally{
+
+
+            /*addLog(
+                "Finalizando requisição"
+            );*/
+
+
+            setLoading(false);
+
+
+        }
+
 
     }
-    catch (error) {
 
-        console.log("========== ERRO ==========");
-        console.log(error);
 
-        alert("Erro ao realizar o diagnóstico.");
 
-    }
-    finally {
 
-        setLoading(false);
-
-    }
-
-}
     return (
 
         <ScrollView
 
-            contentContainerStyle={styles.container}
+            contentContainerStyle={
+                styles.container
+            }
 
         >
+
 
             <Text style={styles.title}>
 
                 Diagnóstico IA
 
             </Text>
+
+
 
             <Button
 
@@ -130,16 +320,16 @@ export default function DiagnosticScreen() {
 
             />
 
-            {
 
+
+            {
                 image &&
+
 
                 <Image
 
                     source={{
-
-                        uri: image.uri,
-
+                        uri:image.uri
                     }}
 
                     style={styles.image}
@@ -148,11 +338,13 @@ export default function DiagnosticScreen() {
 
             }
 
+
+
             <TextInput
 
                 style={styles.input}
 
-                placeholder="Descrição"
+                placeholder="Descrição da planta"
 
                 value={description}
 
@@ -162,6 +354,8 @@ export default function DiagnosticScreen() {
 
             />
 
+
+
             <Button
 
                 title="Diagnosticar"
@@ -170,8 +364,9 @@ export default function DiagnosticScreen() {
 
             />
 
-            {
 
+
+            {
                 loading &&
 
                 <ActivityIndicator
@@ -179,74 +374,82 @@ export default function DiagnosticScreen() {
                     size="large"
 
                     style={{
-
-                        marginTop: 30,
-
+                        marginTop:20
                     }}
 
                 />
 
             }
 
-            {
 
+
+            {
                 result &&
 
-                <View
 
-                    style={styles.card}
+                <View style={styles.card}>
 
-                >
 
                     <Text>
-
-                        Patógeno
-
+                        Patógeno:
                     </Text>
 
-                    <Text>
 
+                    <Text>
                         {result.pathogen}
-
                     </Text>
 
+
+
                     <Text>
-
-                        Severidade
-
+                        Severidade:
                     </Text>
 
-                    <Text>
 
+                    <Text>
                         {result.severity}
-
                     </Text>
 
+
+
                     <Text>
-
-                        Manejo
-
+                        Manejo:
                     </Text>
 
-                    <Text>
 
+                    <Text>
                         {result.management}
-
                     </Text>
 
-                    <Text
 
-                        style={styles.warning}
 
-                    >
-
+                    <Text style={styles.warning}>
                         {result.technical_warning}
-
                     </Text>
+
 
                 </View>
 
             }
+
+
+            
+            {/*<View style={styles.debug}>
+
+
+                <Text style={styles.debugTitle}>
+                    LOG:
+                </Text>
+
+
+                <Text>
+                    {debug}
+                </Text>
+
+
+            </View>*/}
+
+
 
         </ScrollView>
 
@@ -254,74 +457,99 @@ export default function DiagnosticScreen() {
 
 }
 
-const styles =
 
+
+const styles =
 StyleSheet.create({
 
-    container: {
+    container:{
 
-        padding: 20,
-
-    },
-
-    title: {
-
-        fontSize: 28,
-
-        fontWeight: "bold",
-
-        marginBottom: 20,
+        padding:20,
 
     },
 
-    image: {
 
-        width: "100%",
+    title:{
 
-        height: 250,
+        fontSize:28,
 
-        marginVertical: 20,
+        fontWeight:"bold",
 
-        borderRadius: 12,
-
-    },
-
-    input: {
-
-        borderWidth: 1,
-
-        borderColor: "#ccc",
-
-        padding: 10,
-
-        marginVertical: 20,
-
-        borderRadius: 10,
-
-        minHeight: 120,
+        marginBottom:20,
 
     },
 
-    card: {
 
-        marginTop: 30,
+    image:{
 
-        padding: 20,
+        width:"100%",
 
-        backgroundColor: "#F5F5F5",
+        height:250,
 
-        borderRadius: 12,
+        marginVertical:20,
+
+        borderRadius:12,
+
+    },
+
+
+    input:{
+
+        borderWidth:1,
+
+        borderColor:"#ccc",
+
+        padding:10,
+
+        marginVertical:20,
+
+        borderRadius:10,
+
+        minHeight:120,
 
     },
 
-    warning: {
 
-        marginTop: 20,
+    card:{
 
-        color: "red",
+        marginTop:30,
 
-        fontWeight: "bold",
+        padding:20,
+
+        backgroundColor:"#F5F5F5",
+
+        borderRadius:12,
 
     },
+
+
+    warning:{
+
+        marginTop:20,
+
+        color:"red",
+
+        fontWeight:"bold",
+
+    },
+
+
+    debug:{
+
+        marginTop:30,
+
+        padding:10,
+
+        backgroundColor:"#eeeeee",
+
+    },
+
+
+    debugTitle:{
+
+        fontWeight:"bold",
+
+    },
+
 
 });

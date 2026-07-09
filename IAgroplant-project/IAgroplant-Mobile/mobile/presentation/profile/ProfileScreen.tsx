@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, StatusBar } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ProfileAvatar } from './components/ProfileAvatar';
 import { VerifiedBadge } from './components/VerifiedBadge';
@@ -24,7 +24,7 @@ const REPUTATION_ACTION_LABELS: Record<string, string> = {
 
 export function ProfileScreen() {
   const navigation = useNavigation<any>();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { profile, isLoading, refresh } = useProfile();
   const { candidaturas } = useOpportunities();
   const { summary: reputation, refresh: refreshReputation } = useReputation();
@@ -91,7 +91,7 @@ export function ProfileScreen() {
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Histórico de Candidaturas</Text>
           <TouchableOpacity
-            onPress={() => navigation.navigate('Opportunities', { initialTab: 'applications' })}
+            onPress={() => navigation.navigate('MainTabs', { screen: 'opportunities', initialTab: 'applications' })}
           >
             <Text style={styles.linkText}>Ver todas</Text>
           </TouchableOpacity>
@@ -147,6 +147,16 @@ export function ProfileScreen() {
       >
         <Text style={styles.editButtonText}>Editar Perfil</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.editButton, { backgroundColor: '#B45309', marginTop: -10, marginBottom: 40 }]}
+        onPress={async () => {
+          await signOut();
+        }}
+        disabled={isLoading}
+      >
+        <Text style={styles.editButtonText}>🔄 Sair / Trocar de Conta</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -155,6 +165,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   content: {
     padding: 20,

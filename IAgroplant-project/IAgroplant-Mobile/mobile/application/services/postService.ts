@@ -94,7 +94,7 @@ export class MockPostService implements IFeedRepository {
 
   async save(type: PostType, data: PublishPostInput): Promise<Post> {
     await delay(800);
-    return createPost(type, {
+    const newPost = createPost(type, {
       id: Date.now(),
       author: {
         name: data.authorName,
@@ -121,6 +121,9 @@ export class MockPostService implements IFeedRepository {
         ? { salary: data.salary ?? 'A combinar', duration: data.duration ?? 'A definir' }
         : {}),
     });
+
+    MOCK_POSTS.unshift(newPost);
+    return newPost;
   }
 
   async like(postId: number | string, _userId: string): Promise<void> {
