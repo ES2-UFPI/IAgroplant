@@ -9,19 +9,22 @@ import {
   StatusBar,
   ActivityIndicator,
   RefreshControl,
+  Platform,
 } from 'react-native';
 import { PostCard } from './components/PostCard';
 import { FilterBar } from './components/FilterBar';
 import { ComposeBox } from './components/ComposeBox';
 import { useFeed } from './hooks/useFeed';
 import { Post } from './types/post.types';
+import { useAuth } from '../auth/AuthContext';
 
 type FeedScreenProps = {
   title?: string;
   initialFilter?: string;
 };
 
-export function FeedScreen({ title = 'IAgroplant', initialFilter = 'Todos' }: FeedScreenProps) {
+export function FeedScreen({ navigation, title = 'IAgroplant', initialFilter = 'Todos' }: any) {
+  const { user } = useAuth();
   const {
     posts,
     activeFilter,
@@ -39,8 +42,12 @@ export function FeedScreen({ title = 'IAgroplant', initialFilter = 'Todos' }: Fe
 
   const [showCompose, setShowCompose] = useState(false);
 
-  function handlePublish(type: any, input: any) {
-    publishPost(type, input).then(() => setShowCompose(false));
+  function handlePublish(type: any, input: { content: string; image?: string }) {
+    publishPost(type, {
+      ...input,
+      authorRole: user?.role ?? 'Estudante',
+    }).then(() => setShowCompose(false))
+      .catch((e) => alert('Erro ao publicar. Tente novamente.'));
   }
 
   // ─── ESTADOS DE TELA ──────────────────────────────────────────────────────
@@ -78,15 +85,25 @@ export function FeedScreen({ title = 'IAgroplant', initialFilter = 'Todos' }: Fe
           </View>
           <Text style={styles.logoText}>{title}</Text>
         </View>
-        <TouchableOpacity
-          onPress={() => setShowCompose((v) => !v)}
-          style={styles.publishBtn}
-          disabled={isPublishing}
-        >
-          <Text style={styles.publishBtnText}>
-            {isPublishing ? 'Publicando...' : showCompose ? '✕ Fechar' : '+ Publicar'}
-          </Text>
-        </TouchableOpacity>
+        
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <TouchableOpacity
+            onPress={() => navigation?.navigate('Notifications')}
+            style={styles.notificationHeaderBtn}
+          >
+            <Text style={styles.notificationHeaderEmoji}>🔔</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setShowCompose((v) => !v)}
+            style={styles.publishBtn}
+            disabled={isPublishing}
+          >
+            <Text style={styles.publishBtnText}>
+              {isPublishing ? 'Publicando...' : showCompose ? '✕ Fechar' : '+ Publicar'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Filter bar */}
@@ -137,7 +154,7 @@ export function FeedScreen({ title = 'IAgroplant', initialFilter = 'Todos' }: Fe
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F9FAFB' },
+  safe: { flex: 1, backgroundColor: '#F9FAFB', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
   centered: { alignItems: 'center', justifyContent: 'center', gap: 12 },
   header: {
     flexDirection: 'row',
@@ -163,6 +180,19 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   publishBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  notificationHeaderBtn: {
+    backgroundColor: '#F3F4F6',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  notificationHeaderEmoji: {
+    fontSize: 16,
+  },
   listContent: { padding: 12, paddingBottom: 32 },
   empty: { alignItems: 'center', paddingVertical: 40 },
   emptyEmoji: { fontSize: 40 },

@@ -51,7 +51,12 @@ export function useFeed(initialFilter = 'Todos') {
 
     try {
       const data = await getFeedUseCase.execute(page.current, filter);
-      setPosts((prev) => reset ? data : [...prev, ...data]);
+      setPosts((prev) => {
+        const combined = reset ? data : [...prev, ...data];
+        return combined.filter((post, index, self) => 
+          self.findIndex((p) => p.id === post.id) === index
+        );
+      });
       if (data.length === 0) setHasMore(false);
       else page.current += 1;
     } catch (e) {

@@ -11,6 +11,8 @@ export interface Vaga {
   producer_name: string;
   expires_at: string;
   created_at: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface Candidatura {

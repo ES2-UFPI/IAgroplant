@@ -21,6 +21,10 @@ let LOCAL_PROFILE: UserProfile = {
 
 export class ProfileService implements IProfileRepository {
 
+  setMockProfile(profile: UserProfile) {
+    LOCAL_PROFILE = profile;
+  }
+
   async getMe(): Promise<UserProfile> {
     try {
       const data = await get('/users/me');

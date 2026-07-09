@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,12 +13,21 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  Animated,
 } from 'react-native';
 import { useAuth } from '../auth/AuthContext';
 import { useOpportunities, OpportunitiesFilters } from './OportunidadesViewModel';
 import { Vaga } from '../../domain/entities/vaga.types';
+import MapView, { Marker, Circle } from 'react-native-maps';
 
-export function OpportunitiesScreen({ route }: any) {
+const CITY_COORDINATES: Record<string, { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number }> = {
+  teresina: { latitude: -5.0892, longitude: -42.8016, latitudeDelta: 0.12, longitudeDelta: 0.12 },
+  floriano: { latitude: -6.7669, longitude: -43.0225, latitudeDelta: 0.12, longitudeDelta: 0.12 },
+  parnaiba: { latitude: -2.9098, longitude: -41.7766, latitudeDelta: 0.12, longitudeDelta: 0.12 },
+  parnaíba: { latitude: -2.9098, longitude: -41.7766, latitudeDelta: 0.12, longitudeDelta: 0.12 },
+};
+
+export function OpportunitiesScreen({ navigation, route }: any) {
   const { user, updateRole } = useAuth();
   const {
     vagas,
@@ -39,14 +48,28 @@ export function OpportunitiesScreen({ route }: any) {
   const [selectedVaga, setSelectedVaga] = useState<Vaga | null>(null);
   const [showMap, setShowMap] = useState(false);
 
+  React.useEffect(() => {
+    if (route?.params?.initialTab) {
+      setActiveTab(route.params.initialTab);
+    }
+  }, [route?.params?.initialTab]);
+
   // Form State
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
-  const [newRegion, setNewRegion] = useState('Mato Grosso');
+  const [newRegion, setNewRegion] = useState('Teresina');
   const [newCulture, setNewCulture] = useState('Soja');
   const [newType, setNewType] = useState<'Estágio' | 'Emprego' | 'Freelance'>('Estágio');
   const [newSalary, setNewSalary] = useState('R$ 1.500,00');
   const [newDuration, setNewDuration] = useState('6 meses');
+
+  // Simulated GPS Teleportation State
+  const [simulatedCity, setSimulatedCity] = useState('Teresina');
+  
+  // Custom In-App Banner Notification State
+  const [notification, setNotification] = useState<{ message: string; city: string; count: number } | null>(null);
+  const notificationY = useRef(new Animated.Value(-150)).current;
+  const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const userRole = user?.role || 'Estudante';
   const isProducer = userRole.toLowerCase().includes('produtor');
@@ -55,12 +78,59 @@ export function OpportunitiesScreen({ route }: any) {
   const cultures = ['Todos', 'Soja', 'Milho', 'Algodão', 'Café'];
   const types = ['Todos', 'Estágio', 'Emprego', 'Freelance'];
 
-  // Geolocation Pins for Mock Map
-  const mapPins = [
-    { id: 'vaga-1', title: 'Manejo de Grãos', coords: { x: 120, y: 150 }, region: 'Mato Grosso', culture: 'Soja' },
-    { id: 'vaga-2', title: 'Agrônomo Campo', coords: { x: 180, y: 220 }, region: 'Goiás', culture: 'Milho' },
-    { id: 'vaga-3', title: 'Consultoria Café', coords: { x: 230, y: 270 }, region: 'Minas Gerais', culture: 'Café' },
-  ];
+  // Geolocation Pins logic
+  const getCoordsForIndex = (index: number) => {
+    const coords = [
+      { x: 50, y: 70 },
+      { x: 190, y: 110 },
+      { x: 110, y: 220 },
+      { x: 250, y: 180 },
+      { x: 160, y: 290 },
+      { x: 70, y: 310 },
+    ];
+    return coords[index % coords.length];
+  };
+
+  const triggerNotification = (cityName: string, count: number) => {
+    if (hideTimeout.current) {
+      clearTimeout(hideTimeout.current);
+    }
+    
+    // Reset banner position
+    notificationY.setValue(-150);
+    
+    setNotification({
+      message: `🔔 IAgroplant: Detectamos ${count} vaga(s) de estágio ativa(s) na região de ${cityName}! Toque para ver no mapa.`,
+      city: cityName,
+      count
+    });
+
+    Animated.spring(notificationY, {
+      toValue: 20,
+      useNativeDriver: true,
+      tension: 40,
+      friction: 8,
+    }).start();
+
+    hideTimeout.current = setTimeout(() => {
+      Animated.timing(notificationY, {
+        toValue: -150,
+        duration: 350,
+        useNativeDriver: true,
+      }).start(() => {
+        setNotification(null);
+      });
+    }, 4500);
+  };
+
+  const handleSimulateCity = (cityName: string) => {
+    setSimulatedCity(cityName);
+    // Filtra vagas locais daquela cidade para obter a contagem em tempo real
+    const cityVacanciesCount = vagas.filter(
+      (v) => v.region.toLowerCase() === cityName.toLowerCase()
+    ).length;
+    triggerNotification(cityName, cityVacanciesCount);
+  };
 
   const handleCreate = async () => {
     if (!newTitle.trim() || !newDescription.trim() || !newSalary.trim() || !newDuration.trim()) {
@@ -76,7 +146,7 @@ export function OpportunitiesScreen({ route }: any) {
       vacancy_type: newType,
       salary: newSalary,
       duration: newDuration,
-      expires_at: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 dias de expiração padrão
+      expires_at: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
     });
 
     if (success) {
@@ -84,7 +154,7 @@ export function OpportunitiesScreen({ route }: any) {
       // Reset form
       setNewTitle('');
       setNewDescription('');
-      setNewRegion('Mato Grosso');
+      setNewRegion('Teresina');
       setNewCulture('Soja');
       setNewType('Estágio');
       setNewSalary('R$ 1.500,00');
@@ -110,49 +180,70 @@ export function OpportunitiesScreen({ route }: any) {
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-      {/* ─── ROLE SWITCHER BAR (PREMIUM DEVELOPMENT TESTING) ───────────────── */}
-      <View style={styles.roleSwitcherContainer}>
-        <Text style={styles.roleSwitcherLabel}>Testar perfil:</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.roleSwitcherScroll}>
+      {/* ─── IN-APP PUSH NOTIFICATION BANNER (WOW FACTOR) ─────────────────── */}
+      {notification && (
+        <Animated.View style={[styles.notificationBanner, { transform: [{ translateY: notificationY }] }]}>
           <TouchableOpacity
-            style={[styles.roleSwitchBtn, userRole === 'Produtor Rural' && styles.roleSwitchBtnActive]}
-            onPress={() => updateRole('Produtor Rural')}
+            style={styles.notificationTouchable}
+            activeOpacity={0.9}
+            onPress={() => {
+              setShowMap(true);
+              setNotification(null);
+            }}
           >
-            <Text style={[styles.roleSwitchText, userRole === 'Produtor Rural' && styles.roleSwitchTextActive]}>
-              🚜 Produtor Rural
-            </Text>
+            <View style={styles.notificationIconBg}>
+              <Text style={styles.notificationEmoji}>🌱</Text>
+            </View>
+            <View style={styles.notificationTextWrapper}>
+              <Text style={styles.notificationTitle}>Oportunidades Próximas</Text>
+              <Text style={styles.notificationBody} numberOfLines={2}>{notification.message}</Text>
+            </View>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.roleSwitchBtn, userRole === 'Estudante' && styles.roleSwitchBtnActive]}
-            onPress={() => updateRole('Estudante')}
-          >
-            <Text style={[styles.roleSwitchText, userRole === 'Estudante' && styles.roleSwitchTextActive]}>
-              🎓 Estudante
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.roleSwitchBtn, userRole === 'Técnico' && styles.roleSwitchBtnActive]}
-            onPress={() => updateRole('Técnico')}
-          >
-            <Text style={[styles.roleSwitchText, userRole === 'Técnico' && styles.roleSwitchTextActive]}>
-              🔧 Técnico Agrícola
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
+        </Animated.View>
+      )}
+
+
 
       {/* Header Info */}
       <View style={styles.header}>
-        <View>
+        <View style={{ flex: 1, marginRight: 8 }}>
           <Text style={styles.welcomeText}>Olá, {user?.name ?? 'Usuário'}!</Text>
           <View style={styles.userRoleRow}>
             <Text style={styles.userRoleDesc}>Seu perfil atual é: </Text>
             <Text style={[styles.userRoleValue, getRoleStyle(userRole)]}>{userRole}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.mapToggle} onPress={() => setShowMap(!showMap)}>
-          <Text style={styles.mapToggleText}>{showMap ? '📋 Listar' : '🗺️ Ver Mapa'}</Text>
-        </TouchableOpacity>
+        
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <TouchableOpacity
+            style={styles.notificationHeaderBtn}
+            onPress={() => navigation?.navigate('Notifications')}
+          >
+            <Text style={styles.notificationHeaderEmoji}>🔔</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.mapToggle} onPress={() => setShowMap(!showMap)}>
+            <Text style={styles.mapToggleText}>{showMap ? '📋 Listar' : '🗺️ Ver Mapa'}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* ─── SIMULADOR DE GPS / LOCALIZAÇÃO (WOW FACTOR) ──────────────────── */}
+      <View style={styles.gpsSimulatorContainer}>
+        <Text style={styles.gpsSimulatorLabel}>📍 Localização Simulada (Teletransporte GPS):</Text>
+        <View style={styles.gpsButtonsRow}>
+          {['Teresina', 'Floriano', 'Parnaíba'].map((city) => (
+            <TouchableOpacity
+              key={city}
+              style={[styles.gpsButton, simulatedCity.toLowerCase() === city.toLowerCase() && styles.gpsButtonActive]}
+              onPress={() => handleSimulateCity(city)}
+            >
+              <Text style={[styles.gpsButtonText, simulatedCity.toLowerCase() === city.toLowerCase() && styles.gpsButtonTextActive]}>
+                📍 {city}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       {/* Tabs Menu */}
@@ -184,7 +275,7 @@ export function OpportunitiesScreen({ route }: any) {
               <Text style={styles.searchIcon}>🔍</Text>
               <TextInput
                 style={styles.searchInput}
-                placeholder="Buscar por região (ex: Mato Grosso)..."
+                placeholder="Buscar por região (ex: Teresina)..."
                 placeholderTextColor="#9CA3AF"
                 value={filters.region}
                 onChangeText={searchByRegion}
@@ -224,40 +315,60 @@ export function OpportunitiesScreen({ route }: any) {
             </View>
           </View>
 
-          {/* ─── MAP VISUALIZER MOCK (WOW FACTOR) ───────────────────────────── */}
+          {/* ─── MAP VISUALIZER REAL (WOW FACTOR) ────────────────────────────── */}
           {showMap ? (
             <View style={styles.mapContainer}>
-              <Text style={styles.mapTitle}>🗺️ Geolocalização de Oportunidades</Text>
-              <View style={styles.mapCanvas}>
-                {/* Simulated geographic lines */}
-                <View style={styles.gridLineHorizontal1} />
-                <View style={styles.gridLineHorizontal2} />
-                <View style={styles.gridLineVertical1} />
-                <View style={styles.gridLineVertical2} />
-                
-                {mapPins.map((pin) => {
-                  // Check if pin is active in filter
-                  const matchesCulture = filters.culture === 'Todos' || pin.culture === filters.culture;
-                  const matchesRegion = filters.region === '' || pin.region.toLowerCase().includes(filters.region.toLowerCase());
-                  if (!matchesCulture || !matchesRegion) return null;
+              <View style={styles.mapHeaderRow}>
+                <Text style={styles.mapTitle}>🗺️ Geolocalização em {simulatedCity}</Text>
+                <View style={styles.mapStatusBadge}>
+                  <Text style={styles.mapStatusBadgeText}>GPS: {simulatedCity}</Text>
+                </View>
+              </View>
+              <View style={styles.mapCanvasContainer}>
+                <MapView
+                  style={styles.mapCanvasReal}
+                  region={CITY_COORDINATES[simulatedCity.toLowerCase()] || CITY_COORDINATES.teresina}
+                  scrollEnabled={true}
+                  zoomEnabled={true}
+                  pitchEnabled={false}
+                  rotateEnabled={false}
+                >
+                  {/* Ponto central indicando "Você" */}
+                  <Marker
+                    coordinate={CITY_COORDINATES[simulatedCity.toLowerCase()] || CITY_COORDINATES.teresina}
+                    title="Sua Localização"
+                    description={`Você simulado em: ${simulatedCity}`}
+                  >
+                    <View style={styles.userMarkerContainer}>
+                      <View style={styles.userMarkerPulse} />
+                      <View style={styles.userMarkerCore} />
+                    </View>
+                  </Marker>
 
-                  return (
-                    <TouchableOpacity
-                      key={pin.id}
-                      style={[styles.mapMarker, { left: pin.coords.x, top: pin.coords.y }]}
-                      onPress={() => {
-                        const vg = vagas.find(v => v.id === pin.id);
-                        if (vg) setSelectedVaga(vg);
-                      }}
-                    >
-                      <Text style={styles.mapMarkerEmoji}>📍</Text>
-                      <View style={styles.markerLabelContainer}>
-                        <Text style={styles.markerLabelText}>{pin.title}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-                <Text style={styles.mapHelperText}>Mapa AgroBrasil - Toque nos pinos para ver detalhes</Text>
+                  {vagas
+                    .filter((v) => v.region.toLowerCase() === simulatedCity.toLowerCase() && v.latitude && v.longitude)
+                    .map((pin) => {
+                      // Check if pin is active in filter
+                      const matchesCulture = filters.culture === 'Todos' || pin.culture === filters.culture;
+                      const matchesType = filters.vacancy_type === 'Todos' || pin.vacancy_type === filters.vacancy_type;
+                      if (!matchesCulture || !matchesType) return null;
+
+                      return (
+                        <Marker
+                          key={pin.id}
+                          coordinate={{ latitude: pin.latitude!, longitude: pin.longitude! }}
+                          title={pin.title}
+                          description={`${pin.producer_name} • ${pin.salary}`}
+                          onCalloutPress={() => setSelectedVaga(pin)}
+                        >
+                          <View style={styles.customPinContainer}>
+                            <Text style={styles.mapMarkerEmoji}>📍</Text>
+                          </View>
+                        </Marker>
+                      );
+                    })}
+                </MapView>
+                <Text style={styles.mapHelperText}>Mapa Interativo Real • Toque nos pinos para ver detalhes</Text>
               </View>
             </View>
           ) : (
@@ -276,7 +387,7 @@ export function OpportunitiesScreen({ route }: any) {
                 </View>
               }
               renderItem={({ item }) => {
-                const alreadyApplied = candidaturas.some((app) => app.opportunity_id === item.id);
+                const alreadyApplied = user?.role !== 'Produtor Rural' && candidaturas.some((app) => app.opportunity_id === item.id && app.user_id === user?.id);
                 return (
                   <TouchableOpacity style={styles.card} onPress={() => setSelectedVaga(item)}>
                     <View style={styles.cardHeader}>
@@ -351,9 +462,16 @@ export function OpportunitiesScreen({ route }: any) {
           renderItem={({ item }) => (
             <View style={styles.appCard}>
               <View style={styles.appCardHeader}>
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.appCardTitle}>{item.vacancy_title || 'Estagiário Agronomia'}</Text>
                   <Text style={styles.appCardRegion}>📍 {item.vacancy_region || 'Mato Grosso'} • Cultivo: {item.vacancy_culture || 'Geral'}</Text>
+                  
+                  {/* Se for produtor, exibe quem se candidatou à vaga dele! */}
+                  {user?.role === 'Produtor Rural' && (
+                    <Text style={{ fontSize: 13, color: '#16A34A', fontWeight: '700', marginTop: 6 }}>
+                      👤 Candidato: {item.user_name} ({item.user_role})
+                    </Text>
+                  )}
                 </View>
                 <View style={styles.statusBadgePending}>
                   <Text style={styles.statusBadgeText}>{item.status}</Text>
@@ -571,7 +689,7 @@ export function OpportunitiesScreen({ route }: any) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F3F4F6' },
+  safe: { flex: 1, backgroundColor: '#F3F4F6', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
   roleSwitcherContainer: {
     backgroundColor: '#E5E7EB',
     paddingVertical: 8,
@@ -670,31 +788,150 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 12, color: '#4B5563', fontWeight: '500' },
   chipTextActive: { color: '#fff', fontWeight: '700' },
   mapContainer: { flex: 1, padding: 16, backgroundColor: '#E5E7EB' },
-  mapTitle: { fontSize: 14, fontWeight: '700', color: '#374151', marginBottom: 12 },
-  mapCanvas: {
-    flex: 1,
-    backgroundColor: '#C5E1A5',
-    borderRadius: 16,
-    position: 'relative',
+  mapHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  mapStatusBadge: {
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#9CCC65',
+    borderColor: '#86EFAC',
+  },
+  mapStatusBadgeText: { fontSize: 10, fontWeight: '700', color: '#16A34A' },
+  mapTitle: { fontSize: 14, fontWeight: '700', color: '#374151' },
+  mapCanvasContainer: {
+    flex: 1,
+    borderRadius: 16,
     overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: '#A7F3D0',
+    backgroundColor: '#E5E7EB',
+    position: 'relative',
   },
-  gridLineHorizontal1: { position: 'absolute', top: '33%', left: 0, right: 0, height: 1, backgroundColor: '#AED581', borderStyle: 'dashed' },
-  gridLineHorizontal2: { position: 'absolute', top: '66%', left: 0, right: 0, height: 1, backgroundColor: '#AED581', borderStyle: 'dashed' },
-  gridLineVertical1: { position: 'absolute', left: '33%', top: 0, bottom: 0, width: 1, backgroundColor: '#AED581', borderStyle: 'dashed' },
-  gridLineVertical2: { position: 'absolute', left: '66%', top: 0, bottom: 0, width: 1, backgroundColor: '#AED581', borderStyle: 'dashed' },
-  mapMarker: { position: 'absolute', alignItems: 'center', zIndex: 10 },
-  mapMarkerEmoji: { fontSize: 24 },
-  markerLabelContainer: {
-    backgroundColor: 'rgba(17, 24, 39, 0.85)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginTop: 2,
+  mapCanvasReal: {
+    flex: 1,
   },
-  markerLabelText: { color: '#fff', fontSize: 9, fontWeight: '700' },
-  mapHelperText: { position: 'absolute', bottom: 12, alignSelf: 'center', fontSize: 11, color: '#556B2F', fontWeight: '600' },
+  
+  // Real Map Marker pulse effect for User location
+  userMarkerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 40,
+    height: 40,
+  },
+  userMarkerCore: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#3B82F6',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 1 },
+  },
+  userMarkerPulse: {
+    position: 'absolute',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(59, 130, 246, 0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.4)',
+  },
+  customPinContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mapMarkerEmoji: { fontSize: 28, textShadowColor: 'rgba(0,0,0,0.15)', textShadowOffset: { width: 1, height: 2 }, textShadowRadius: 3 },
+  mapHelperText: { position: 'absolute', bottom: 12, alignSelf: 'center', fontSize: 10, color: '#065F46', fontWeight: '700', letterSpacing: 0.5, backgroundColor: 'rgba(255,255,255,0.85)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  
+  // Custom In-App Notification Banner Styles
+  notificationBanner: {
+    position: 'absolute',
+    top: 0, // Controlado por Animated.translateY
+    left: 16,
+    right: 16,
+    zIndex: 9999,
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  notificationTouchable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    gap: 12,
+  },
+  notificationIconBg: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#DCFCE7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notificationEmoji: { fontSize: 18 },
+  notificationTextWrapper: { flex: 1, gap: 2 },
+  notificationTitle: { fontSize: 12, fontWeight: '800', color: '#16A34A', textTransform: 'uppercase', letterSpacing: 0.5 },
+  notificationBody: { fontSize: 13, color: '#374151', fontWeight: '500', lineHeight: 17 },
+  notificationHeaderBtn: {
+    backgroundColor: '#F3F4F6',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  notificationHeaderEmoji: {
+    fontSize: 16,
+  },
+  
+  // GPS Simulator Panel
+  gpsSimulatorContainer: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E7EB',
+    gap: 6,
+  },
+  gpsSimulatorLabel: { fontSize: 11, fontWeight: '700', color: '#4B5563', textTransform: 'uppercase', letterSpacing: 0.5 },
+  gpsButtonsRow: { flexDirection: 'row', gap: 8 },
+  gpsButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 4,
+  },
+  gpsButtonActive: {
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
+  },
+  gpsButtonText: { fontSize: 12, color: '#4B5563', fontWeight: '600' },
+  gpsButtonTextActive: { color: '#fff', fontWeight: '700' },
+
   listContainer: { padding: 16, gap: 16, paddingBottom: 80 },
   card: {
     backgroundColor: '#fff',
@@ -738,8 +975,8 @@ const styles = StyleSheet.create({
   emptySubtitle: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', marginTop: 4 },
   fab: {
     position: 'absolute',
-    bottom: 24,
-    right: 24,
+    bottom: 80,
+    right: 20,
     backgroundColor: '#16A34A',
     width: 56,
     height: 56,
