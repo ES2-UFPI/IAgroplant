@@ -118,6 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         certificado: mockRole === 'Técnico' || mockRole === 'Produtor Rural',
         especialidades: mockRole === 'Estudante' ? ['Soja', 'Milho', 'Fitopatologia'] : ['Manejo integrado', 'Consultoria'],
         photo_url: null,
+        reputacao: 0,
       });
 
       // Sincroniza o mock user no oportunidadesService

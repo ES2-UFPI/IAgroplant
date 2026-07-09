@@ -3,10 +3,11 @@ from rest_framework.response import Response
 from rest_framework import status, serializers
 from rest_framework.parsers import MultiPartParser, FormParser
 
-from shared.utils.repository_factory import get_user_repository
+from shared.utils.repository_factory import get_user_repository, get_reputation_repository
 from domains.users.application.use_cases.get_profile_use_case import GetProfileUseCase
 from domains.users.application.use_cases.update_profile_use_case import UpdateProfileUseCase, UpdateProfileInput
 from domains.users.application.use_cases.update_profile_photo_use_case import UpdateProfilePhotoUseCase
+from domains.reputation.application.use_cases.get_reputation_summary_use_case import GetReputationSummaryUseCase
 from integrations.storage.cloudinary_service import CloudinaryStorageService
 
 
@@ -51,8 +52,12 @@ class MeProfileView(APIView):
         use_case = GetProfileUseCase(repository=repo)
         profile = use_case.execute(current_user)
 
-        serializer = ProfileSerializer(profile)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        summary_use_case = GetReputationSummaryUseCase(repository=get_reputation_repository())
+        summary = summary_use_case.execute(current_user.id)
+
+        data = ProfileSerializer(profile).data
+        data["reputacao"] = summary.total
+        return Response(data, status=status.HTTP_200_OK)
 
     def put(self, request):
         current_user = getattr(request, "current_user", None)

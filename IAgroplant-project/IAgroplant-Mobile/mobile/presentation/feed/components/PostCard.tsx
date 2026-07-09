@@ -102,9 +102,14 @@ function OpportunityInfo({ post }: { post: OpportunityPost }) {
 interface PostCardProps {
   post: Post;
   onLike: (id: number | string) => void;
+  canModerate?: boolean;
+  currentUserId?: string;
+  onVerify?: (id: number | string) => void;
+  onRemove?: (id: number | string) => void;
 }
 
-export function PostCard({ post, onLike }: PostCardProps) {
+export function PostCard({ post, onLike, canModerate, currentUserId, onVerify, onRemove }: PostCardProps) {
+  const showModeration = canModerate && post.author.id !== currentUserId;
   return (
     <View style={styles.card}>
       {/* Header */}
@@ -169,6 +174,19 @@ export function PostCard({ post, onLike }: PostCardProps) {
           </TouchableOpacity>
         )}
       </View>
+
+      {showModeration && (
+        <View style={styles.moderationRow}>
+          {!post.author.verified && (
+            <TouchableOpacity style={styles.verifyBtn} onPress={() => onVerify?.(post.id)}>
+              <Text style={styles.verifyBtnText}>✓ Marcar como verificado</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.removeBtn} onPress={() => onRemove?.(post.id)}>
+            <Text style={styles.removeBtnText}>🚫 Remover por violação</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -319,4 +337,30 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   applyBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  moderationRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingBottom: 12,
+    paddingTop: 4,
+    flexWrap: 'wrap',
+  },
+  verifyBtn: {
+    backgroundColor: '#DCFCE7',
+    borderWidth: 1,
+    borderColor: '#16A34A',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+  },
+  verifyBtnText: { fontSize: 11, color: '#166534', fontWeight: '700' },
+  removeBtn: {
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#DC2626',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+  },
+  removeBtnText: { fontSize: 11, color: '#DC2626', fontWeight: '700' },
 });

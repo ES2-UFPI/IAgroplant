@@ -17,6 +17,9 @@ import { LoginScreen } from '../auth/LoginScreen';
 import { FeedScreen } from '../feed/FeedScreen';
 import { ProfileScreen } from '../profile/ProfileScreen';
 import { ProfileEditScreen } from '../profile/ProfileEditScreen';
+import { DiagnosticHistoryScreen } from '../profile/DiagnosticHistoryScreen';
+import { DiagnosticReviewScreen } from '../profile/DiagnosticReviewScreen';
+import { ConnectionsScreen } from '../connections/ConnectionsScreen';
 import { OpportunitiesScreen } from '../opportunities/OpportunitiesScreen';
 import DiagnosticScreen from "../screens/DiagnosticScreen";
 import { ChatScreen } from '../chat/ChatScreen';
@@ -69,7 +72,7 @@ function RoleSelectionScreen({ navigation }: any) {
     >
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       <View style={styles.overlay}>
-        
+
         {/* Título Principal */}
         <View style={styles.roleSelectionHeader}>
           <Text style={styles.selectionTitle}>IAgroplant</Text>
@@ -162,7 +165,7 @@ function MainTabNavigator({ navigation, route }: any) {
   React.useEffect(() => {
     if (route.params?.screen) {
       setActiveTab(route.params.screen);
-      
+
       // Se tiver parâmetros extras de inicialização da aba, propaga para as rotas
       if (route.params?.initialTab && route.params?.screen === 'opportunities') {
         // Redireciona os parâmetros para a rotaOpportunities
@@ -264,15 +267,33 @@ function AuthGate() {
             />
 
             <Stack.Screen
+              name="DiagnosticHistory"
+              component={DiagnosticHistoryScreen}
+              options={{ title: 'Histórico de Diagnósticos' }}
+            />
+
+            <Stack.Screen
+              name="DiagnosticReview"
+              component={DiagnosticReviewScreen}
+              options={{ title: 'Confirmar Diagnósticos' }}
+            />
+
+            <Stack.Screen
+              name="Connections"
+              component={ConnectionsScreen}
+              options={{ title: 'Conexões' }}
+            />
+
+            <Stack.Screen
               name="Diagnostic"
               component={DiagnosticScreen}
               options={{ title: 'Diagnóstico IA' }}
             />
-            
-            <Stack.Screen 
-              name="Notifications" 
-              component={NotificationsScreen} 
-              options={{ title: 'Notificações' }} 
+
+            <Stack.Screen
+              name="Notifications"
+              component={NotificationsScreen}
+              options={{ title: 'Notificações' }}
             />
           </>
         ) : (
@@ -447,7 +468,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
-  
+
   // Custom Tab Bar styles
   bottomTabBar: {
     flexDirection: 'row',
@@ -488,7 +509,7 @@ const styles = StyleSheet.create({
     color: '#16A34A',
     fontWeight: '700',
   },
-  
+
   // Gemini FLOATING ACTION BUTTON
   geminiFAB: {
     position: 'absolute',
