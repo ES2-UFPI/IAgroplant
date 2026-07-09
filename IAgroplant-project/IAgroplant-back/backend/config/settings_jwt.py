@@ -13,17 +13,23 @@ INSTALLED_APPS = [
 
 # ─── Middleware ───────────────────────────────────────────────────────────────
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # JWT — deve vir depois dos middlewares padrão
-    "backend.api.middlewares.jwt_middleware.JWTMiddleware",
-]
 
+    "django.middleware.security.SecurityMiddleware",
+
+    "django.contrib.sessions.middleware.SessionMiddleware",
+
+    "django.middleware.common.CommonMiddleware",
+
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+
+    "django.contrib.messages.middleware.MessageMiddleware",
+
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+
+
+    "backend.api.middlewares.jwt_middleware.JWTMiddleware",
+
+]
 # ─── JWT ─────────────────────────────────────────────────────────────────────
 JWT_SECRET_KEY = config("JWT_SECRET_KEY")
 JWT_ALGORITHM = config("JWT_ALGORITHM", default="HS256")
@@ -32,12 +38,27 @@ REFRESH_TOKEN_EXPIRE_DAYS = int(config("REFRESH_TOKEN_EXPIRE_DAYS", default=7))
 
 # ─── Django REST Framework ────────────────────────────────────────────────────
 REST_FRAMEWORK = {
+
+
     "DEFAULT_RENDERER_CLASSES": [
+
         "rest_framework.renderers.JSONRenderer",
+
     ],
+
+
+
     "DEFAULT_PARSER_CLASSES": [
+
         "rest_framework.parsers.JSONParser",
+
+        "rest_framework.parsers.MultiPartParser",
+
+        "rest_framework.parsers.FormParser",
+
     ],
+
+
 }
 
 #----Configuração para execução local em desenvolvimento no docker------#
