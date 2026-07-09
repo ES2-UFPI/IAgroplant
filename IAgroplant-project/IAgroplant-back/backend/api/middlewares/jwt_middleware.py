@@ -7,15 +7,14 @@ from shared.utils.repository_factory import get_auth_repository
 
 PUBLIC_ROUTES = [
 
+    "/api/login",
+
     "/api/auth/login",
 
     "/api/auth/refresh",
 
-    "/api/diagnostic/",
-
     "/admin/",
 ]
-
 
 
 class JWTMiddleware:

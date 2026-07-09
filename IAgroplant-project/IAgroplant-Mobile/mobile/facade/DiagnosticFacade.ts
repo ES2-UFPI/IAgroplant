@@ -47,9 +47,9 @@ export default class DiagnosticFacade {
 
 
 
-        /*console.log(
-            "FORMDATA PRONTO"
-        );*/
+        //console.log(
+            //"FORMDATA PRONTO"
+        //);
 
 
 

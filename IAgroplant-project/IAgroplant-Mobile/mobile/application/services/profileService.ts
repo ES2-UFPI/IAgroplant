@@ -1,10 +1,15 @@
-import { UserProfile, UpdateProfileInput } from '../../domain/entities/profile.types';
-import { IProfileRepository } from '../../domain/repositories/ProfileRepository';
-import { get, put, uploadFile } from '../../infrastructure/api/api';
+import {
+  UserProfile,
+  UpdateProfileInput,
+} from '../../domain/entities/profile.types';
 
-// ─── LOCAL MOCK STATE ─────────────────────────────────────────────────────────
-// Em caso de falha de conexão (ex: servidor Django offline), o aplicativo
-// utiliza essa memória local para garantir que a demonstração funcione perfeitamente.
+import { IProfileRepository } from '../../domain/repositories/ProfileRepository';
+
+import {
+  get,
+  put,
+  uploadFile,
+} from '../../infrastructure/api/api';
 
 let LOCAL_PROFILE: UserProfile = {
   id: 'demo-user',
@@ -18,8 +23,6 @@ let LOCAL_PROFILE: UserProfile = {
   reputacao: 0,
 };
 
-// ─── IMPLEMENTATION ───────────────────────────────────────────────────────────
-
 export class ProfileService implements IProfileRepository {
 
   setMockProfile(profile: UserProfile) {
@@ -27,52 +30,101 @@ export class ProfileService implements IProfileRepository {
   }
 
   async getMe(): Promise<UserProfile> {
+
     try {
+
       const data = await get('/users/me');
-      if (data && data.id) {
-        LOCAL_PROFILE = data;
-        return data;
-      }
-    } catch (e) {
-      console.log('Backend indisponível, servindo perfil local...');
-    }
 
-    return LOCAL_PROFILE;
+      LOCAL_PROFILE = data;
+
+      return data;
+
+    } catch (error: any) {
+
+      console.log('Erro ao obter perfil');
+      console.log(error.response?.status);
+      console.log(error.response?.data);
+
+      // Se o backend respondeu, repassa o erro.
+      if (error.response) {
+        throw error;
+      }
+
+      // Apenas quando realmente estiver offline
+      console.log('Backend offline. Utilizando perfil local.');
+
+      return LOCAL_PROFILE;
+    }
   }
 
-  async updateMe(input: UpdateProfileInput): Promise<UserProfile> {
+  async updateMe(
+    input: UpdateProfileInput
+  ): Promise<UserProfile> {
+
     try {
+
       const data = await put('/users/me', input);
-      if (data && data.id) {
-        LOCAL_PROFILE = data;
-        return data;
-      }
-    } catch (e) {
-      console.log('Backend indisponível, atualizando perfil localmente...');
-    }
 
-    LOCAL_PROFILE = {
-      ...LOCAL_PROFILE,
-      ...(input.name !== undefined ? { name: input.name } : {}),
-      ...(input.region !== undefined ? { region: input.region } : {}),
-      ...(input.especialidades !== undefined ? { especialidades: input.especialidades } : {}),
-    };
-    return LOCAL_PROFILE;
+      LOCAL_PROFILE = data;
+
+      return data;
+
+    } catch (error: any) {
+
+      console.log('Erro ao atualizar perfil');
+      console.log(error.response?.status);
+      console.log(error.response?.data);
+
+      if (error.response) {
+        throw error;
+      }
+
+      LOCAL_PROFILE = {
+        ...LOCAL_PROFILE,
+        ...(input.name !== undefined && { name: input.name }),
+        ...(input.region !== undefined && { region: input.region }),
+        ...(input.especialidades !== undefined && {
+          especialidades: input.especialidades,
+        }),
+      };
+
+      return LOCAL_PROFILE;
+    }
   }
 
-  async uploadPhoto(uri: string): Promise<UserProfile> {
-    try {
-      const data = await uploadFile('/users/me/photo', uri, 'photo');
-      if (data && data.id) {
-        LOCAL_PROFILE = data;
-        return data;
-      }
-    } catch (e) {
-      console.log('Backend indisponível, aplicando foto localmente...');
-    }
+  async uploadPhoto(
+    uri: string
+  ): Promise<UserProfile> {
 
-    LOCAL_PROFILE = { ...LOCAL_PROFILE, photo_url: uri };
-    return LOCAL_PROFILE;
+    try {
+
+      const data = await uploadFile(
+        '/users/me/photo',
+        uri,
+        'photo'
+      );
+
+      LOCAL_PROFILE = data;
+
+      return data;
+
+    } catch (error: any) {
+
+      console.log('Erro ao enviar foto');
+      console.log(error.response?.status);
+      console.log(error.response?.data);
+
+      if (error.response) {
+        throw error;
+      }
+
+      LOCAL_PROFILE = {
+        ...LOCAL_PROFILE,
+        photo_url: uri,
+      };
+
+      return LOCAL_PROFILE;
+    }
   }
 }
 

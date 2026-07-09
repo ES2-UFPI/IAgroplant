@@ -49,7 +49,7 @@ export default function DiagnosticScreen() {
         useState<string>("");
 
 
-    /*function addLog(message:string){
+    function addLog(message:string){
 
         console.log(message);
 
@@ -58,7 +58,7 @@ export default function DiagnosticScreen() {
             old + "\n" + message
         );
 
-    }*/
+    }
 
 
 
@@ -82,7 +82,7 @@ export default function DiagnosticScreen() {
             );*/
 
 
-            /*console.log(img);*/
+            console.log(img);
 
 
             if(img){
@@ -161,10 +161,10 @@ export default function DiagnosticScreen() {
 
         /*addLog(
             "Imagem encontrada"
-        );
+        );*/
 
 
-        addLog(
+        /*addLog(
             JSON.stringify(
                 image,
                 null,
@@ -188,7 +188,7 @@ export default function DiagnosticScreen() {
         try{
 
 
-           /* addLog(
+            /*addLog(
                 "Chamando DiagnosticFacade..."
             );*/
 
@@ -210,7 +210,7 @@ export default function DiagnosticScreen() {
             );*/
 
 
-           /* addLog(
+            /*addLog(
                 JSON.stringify(
                     response,
                     null,
@@ -277,9 +277,9 @@ export default function DiagnosticScreen() {
         finally{
 
 
-            /*addLog(
+            addLog(
                 "Finalizando requisição"
-            );*/
+            );
 
 
             setLoading(false);
@@ -447,7 +447,7 @@ export default function DiagnosticScreen() {
                 </Text>
 
 
-            </View>*/}
+            </View>}*/}
 
 
 

@@ -47,22 +47,22 @@ class DiagnosticController(APIView):
         image_file = validator.validated_data["image"]
 
 
-        #print(
-           # "TIPO:",
-           # type(image_file)
-        #)
+        print(
+           "TIPO:",
+           type(image_file)
+        )
 
 
-        #print(
-           # "NOME:",
-           # image_file.name
-        #)
+        print(
+            "NOME:",
+            image_file.name
+        )
 
 
-        #print(
-            #"TAMANHO:",
-           #image_file.size
-        #)
+        print(
+            "TAMANHO:",
+           image_file.size
+        )
 
 
         image_bytes = image_file.read()

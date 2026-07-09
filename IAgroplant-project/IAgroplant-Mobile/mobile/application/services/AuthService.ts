@@ -5,7 +5,7 @@ export async function login(
   password: string
 ) {
   return await post(
-    "/auth/login",
+    "/login",
     {
       email,
       password,
