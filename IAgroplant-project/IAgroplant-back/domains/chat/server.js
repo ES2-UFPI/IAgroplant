@@ -122,6 +122,7 @@ io.on("connection", (socket) => {
       horario: now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
       criado_em: now.toISOString(),
       autor_id: socket.id,
+      autor_user_id: socket.user.id,
       autor_nome: data.autor_nome || socket.user.name,
       autor_perfil: socket.user.role,
     };

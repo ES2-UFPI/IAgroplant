@@ -5,7 +5,7 @@ from django.urls import include, path
 urlpatterns = [
 
     path(
-        "auth/",
+        "",
         include(
             "backend.api.routes.auth_urls"
         )
@@ -43,6 +43,41 @@ urlpatterns = [
         "diagnostic/",
         include(
             "backend.api.routes.diagnostic_urls"
+        )
+    ),
+
+    path(
+        "",
+        include(
+            "backend.api.routes.reputation_urls"
+        )
+    ),
+
+    path(
+        "",
+        include(
+            "backend.api.routes.moderation_urls"
+        )
+    ),
+
+    path(
+        "",
+        include(
+            "backend.api.routes.connections_urls"
+        )
+    ),
+
+    path(
+        "",
+        include(
+            "backend.api.routes.chat_urls"
+        )
+    ),
+
+    path(
+        "",
+        include(
+            "backend.api.routes.diagnostics_history_urls"
         )
     ),
 

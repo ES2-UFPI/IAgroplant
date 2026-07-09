@@ -7,6 +7,11 @@ from rest_framework import status
 from domains.ai.presentation.validators.diagnostic_validator import DiagnosticValidator
 from domains.ai.application.facade.diagnostic_facade import DiagnosticFacade
 from domains.ai.infrastructure.composition.ai_factory import AIFactory
+from domains.ai.application.use_cases.save_diagnostic_record_use_case import (
+    SaveDiagnosticRecordUseCase,
+    SaveDiagnosticRecordInput,
+)
+from shared.utils.repository_factory import get_diagnostic_record_repository
 
 
 
@@ -22,22 +27,12 @@ class DiagnosticController(APIView):
 
     def post(self, request):
 
-        print("==============================")
-        print("DIAGNOSTIC CONTROLLER")
-        print("==============================")
-
-
-        '''print(
-            "FILES:",
-            request.FILES
-        )'''
-
-
-        '''print(
-            "DATA:",
-            request.data
-        )'''
-
+        current_user = getattr(request, "current_user", None)
+        if not current_user:
+            return Response(
+                {"detail": "Não autenticado."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
         validator = DiagnosticValidator(
             data=request.data
@@ -95,6 +90,15 @@ class DiagnosticController(APIView):
             description,
         )
 
+        record = SaveDiagnosticRecordUseCase(repository=get_diagnostic_record_repository()).execute(
+            SaveDiagnosticRecordInput(
+                user_id=current_user.id,
+                pathogen=result.pathogen,
+                severity=result.severity,
+                management=result.management,
+                technical_warning=result.technical_warning,
+            )
+        )
 
         return Response(
 
@@ -106,6 +110,7 @@ class DiagnosticController(APIView):
                 "management": result.management,
 
                 "technical_warning": result.technical_warning,
+                "diagnostic_id": record.id,
             },
 
             status=status.HTTP_200_OK

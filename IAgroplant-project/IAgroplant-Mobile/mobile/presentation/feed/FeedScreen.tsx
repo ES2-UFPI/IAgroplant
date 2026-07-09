@@ -16,6 +16,7 @@ import { FilterBar } from './components/FilterBar';
 import { ComposeBox } from './components/ComposeBox';
 import { useFeed } from './hooks/useFeed';
 import { Post } from './types/post.types';
+import { useProfile } from '../profile/ProfileViewModel';
 import { useAuth } from '../auth/AuthContext';
 
 type FeedScreenProps = {
@@ -37,9 +38,12 @@ export function FeedScreen({ navigation, title = 'IAgroplant', initialFilter = '
     error,
     loadMore,
     toggleLike,
+    verifyPost,
+    removePost,
     publishPost,
     refresh,
   } = useFeed(initialFilter);
+  const { profile } = useProfile();
 
   const [showCompose, setShowCompose] = useState(false);
 
@@ -117,7 +121,14 @@ export function FeedScreen({ navigation, title = 'IAgroplant', initialFilter = '
         data={posts}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
-          <PostCard post={item} onLike={toggleLike} />
+          <PostCard
+            post={item}
+            onLike={toggleLike}
+            canModerate={profile?.certificado}
+            currentUserId={profile?.id}
+            onVerify={verifyPost}
+            onRemove={removePost}
+          />
         )}
         ListHeaderComponent={
           showCompose ? (

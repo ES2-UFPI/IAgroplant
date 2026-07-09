@@ -25,12 +25,27 @@ from domains.posts.domain.repositories.post_repository import PostRepository
 from domains.posts.infrastructure.persistence.postgres_post_repository import PostgresPostRepository
 from domains.posts.infrastructure.persistence.supabase_post_repository import SupabasePostRepository
 
+# Import Reputation repositories
+from domains.reputation.domain.repositories.reputation_repository import ReputationRepository
+from domains.reputation.infrastructure.persistence.postgres_reputation_repository import PostgresReputationRepository
+
+# Import Connection repositories
+from domains.connections.domain.repositories.connection_repository import ConnectionRepository
+from domains.connections.infrastructure.persistence.postgres_connection_repository import PostgresConnectionRepository
+
+# Import Diagnostic record repositories
+from domains.ai.domain.repositories.diagnostic_record_repository import DiagnosticRecordRepository
+from domains.ai.infrastructure.persistence.postgres_diagnostic_record_repository import PostgresDiagnosticRecordRepository
+
 
 _user_repo_instance = None
 _opportunity_repo_instance = None
 _notification_repo_instance = None
 _auth_repo_instance = None
 _post_repo_instance = None
+_reputation_repo_instance = None
+_connection_repo_instance = None
+_diagnostic_record_repo_instance = None
 
 
 
@@ -97,4 +112,37 @@ def get_post_repository() -> PostRepository:
     else:
         _post_repo_instance = PostgresPostRepository()
     return _post_repo_instance
+
+
+def get_reputation_repository() -> ReputationRepository:
+    global _reputation_repo_instance
+    if _reputation_repo_instance is not None:
+        return _reputation_repo_instance
+
+    # Ainda não há SupabaseReputationRepository — o projeto não tem Supabase
+    # configurado hoje (sem SUPABASE_URL em .env), então o stub em memória é
+    # suficiente por ora. Adicionar a implementação Supabase aqui quando/se
+    # o projeto ativar Supabase de verdade.
+    _reputation_repo_instance = PostgresReputationRepository()
+    return _reputation_repo_instance
+
+
+def get_connection_repository() -> ConnectionRepository:
+    global _connection_repo_instance
+    if _connection_repo_instance is not None:
+        return _connection_repo_instance
+
+    # Sem SupabaseConnectionRepository ainda — mesmo raciocínio de get_reputation_repository().
+    _connection_repo_instance = PostgresConnectionRepository()
+    return _connection_repo_instance
+
+
+def get_diagnostic_record_repository() -> DiagnosticRecordRepository:
+    global _diagnostic_record_repo_instance
+    if _diagnostic_record_repo_instance is not None:
+        return _diagnostic_record_repo_instance
+
+    # Sem SupabaseDiagnosticRecordRepository ainda — mesmo raciocínio acima.
+    _diagnostic_record_repo_instance = PostgresDiagnosticRecordRepository()
+    return _diagnostic_record_repo_instance
 

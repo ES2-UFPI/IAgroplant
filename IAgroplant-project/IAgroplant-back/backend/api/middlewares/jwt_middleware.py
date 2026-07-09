@@ -14,7 +14,6 @@ PUBLIC_ROUTES = [
     "/api/diagnostic/",
 
     "/admin/",
-
 ]
 
 

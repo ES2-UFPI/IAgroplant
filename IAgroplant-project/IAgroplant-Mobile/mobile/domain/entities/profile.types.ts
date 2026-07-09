@@ -7,6 +7,7 @@ export interface UserProfile {
   certificado: boolean;
   especialidades: string[];
   photo_url: string | null;
+  reputacao: number;
 }
 
 export interface UpdateProfileInput {
