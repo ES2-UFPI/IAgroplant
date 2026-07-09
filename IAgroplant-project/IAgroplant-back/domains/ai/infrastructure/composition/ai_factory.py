@@ -6,6 +6,9 @@ from domains.ai.infrastructure.clients.openai_client import OpenAIClient
 
 from domains.ai.infrastructure.clients.gemini_client import GeminiClient
 
+from domains.ai.infrastructure.clients.plant_id_client import PlantIDClient
+
+from domains.ai.infrastructure.clients.crop_health_client import CropHealthClient
 
 class AIFactory:
 
@@ -28,7 +31,15 @@ class AIFactory:
         if provider == "gemini":
 
             return GeminiClient()
+        
+        if provider == "plantid":
 
+            return PlantIDClient()
+
+        if provider == "crophealth":
+
+            return CropHealthClient()
+        
         raise Exception(
             f"Provider '{provider}' inválido."
         )

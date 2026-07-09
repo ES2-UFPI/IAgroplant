@@ -8,7 +8,7 @@ class ImageProcessor:
 
     MAX_SIZE = (1024, 1024)
 
-    JPEG_QUALITY = 80
+    JPEG_QUALITY = 85
 
 
     @staticmethod
@@ -17,7 +17,6 @@ class ImageProcessor:
         image_stream = io.BytesIO(
             image_bytes
         )
-
 
         image = Image.open(
             image_stream
@@ -47,6 +46,11 @@ class ImageProcessor:
         )
 
 
-        return base64.b64encode(
+        encoded = base64.b64encode(
             buffer.getvalue()
         ).decode("utf-8")
+
+
+        # Retorna somente Base64
+        # A Kindwise não aceita data:image/jpeg;base64,
+        return encoded
