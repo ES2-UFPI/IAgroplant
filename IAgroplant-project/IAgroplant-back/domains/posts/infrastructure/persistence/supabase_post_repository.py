@@ -55,7 +55,7 @@ class SupabasePostRepository(PostRepository):
                 query = query.eq("type", mapped_type)
             
             # Ordenação decrescente por data
-            response = query.order("created_at", descending=True).execute()
+            response = query.order("created_at", desc=True).execute()
             if not response.data:
                 return []
             
@@ -64,7 +64,9 @@ class SupabasePostRepository(PostRepository):
                 likes = self._get_likes_for_post(item["id"])
                 posts.append(self._map_dict_to_post(item, likes))
             return posts
-        except Exception:
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
             return []
 
     def like_post(self, post_id: str, user_id: str) -> bool:
@@ -112,7 +114,9 @@ class SupabasePostRepository(PostRepository):
             if not response.data:
                 return []
             return [item["user_id"] for item in response.data]
-        except Exception:
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
             return []
 
     def _parse_timestamp(self, ts_str: str) -> datetime:

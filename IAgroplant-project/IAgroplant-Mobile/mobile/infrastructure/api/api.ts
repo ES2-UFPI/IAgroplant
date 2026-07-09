@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Em um dispositivo físico via Expo Go, é preciso o IP de LAN da máquina que
 // roda o backend — defina EXPO_PUBLIC_API_URL em um .env.local para isso.
 //const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000/api';
-const API_URL = 'http://10.13.64.181:8000/api'
+const API_URL = 'http://192.168.0.110:8000/api';
 
 const api = axios.create({
 
@@ -48,40 +48,20 @@ api.interceptors.request.use(
 );
 
 // Interceptor to automatically add Bearer token
-
 api.interceptors.request.use(
-
   async (config) => {
-
     try {
-
-      const storedUser =
-        await AsyncStorage.getItem('@iagroplant/auth-user');
-
-
-      if (storedUser) {
-
-        const parsed =
-          JSON.parse(storedUser);
-
-
-        if (parsed && parsed.id) {
-
-          const token =
-            await AsyncStorage.getItem('@iagroplant/auth-token')
-            || 'mock-token';
-
-
-          config.headers.Authorization =
-            `Bearer ${token}`;
-
+      const token = await AsyncStorage.getItem('@iagroplant/auth-token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      } else {
+        // Fallback para mock local se não houver token real salvo ainda
+        const storedUser = await AsyncStorage.getItem('@iagroplant/auth-user');
+        if (storedUser) {
+          config.headers.Authorization = 'Bearer mock-token';
         }
-
       }
-
-
     } catch (error: any) {
-
       console.log("========== AXIOS ERROR ==========");
       console.log("message:", error.message);
       console.log("code:", error.code);
@@ -89,13 +69,9 @@ api.interceptors.request.use(
       console.log("status:", error.response?.status);
       console.log("request:", error.request);
       console.log(error);
-
       throw error;
     }
-
-
     return config;
-
   },
 
 

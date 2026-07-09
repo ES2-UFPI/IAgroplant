@@ -60,7 +60,9 @@ class SupabaseOpportunityRepository(OpportunityRepository):
             if not response.data:
                 return []
             return [self._map_dict_to_vacancy(item) for item in response.data]
-        except Exception:
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
             return []
 
     def save_application(self, application: Application) -> Application:

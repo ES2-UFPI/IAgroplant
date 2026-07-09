@@ -133,8 +133,33 @@ export class OportunidadesService implements IOportunidadesRepository {
       
       // Atualiza nossa cache em memória local se o backend retornar dados com sucesso
       if (Array.isArray(data)) {
-        LOCAL_VACANCIES = data;
-        return data;
+        const populated = data.map((v: any) => {
+          if (v.latitude && v.longitude) return v;
+          let lat = -5.0892;
+          let lng = -42.8016;
+          const reg = (v.region || '').toLowerCase();
+          if (reg.includes('floriano')) {
+            lat = -6.7669;
+            lng = -43.0225;
+          } else if (reg.includes('parnaiba') || reg.includes('parnaíba')) {
+            lat = -2.9098;
+            lng = -41.7766;
+          } else if (reg.includes('teresina')) {
+            lat = -5.0782;
+            lng = -42.7712;
+          }
+          // Variação baseada no ID para evitar sobreposição dos marcadores
+          const seed = v.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+          const latDelta = ((seed % 100) / 100 - 0.5) * 0.04;
+          const lngDelta = (((seed * 7) % 100) / 100 - 0.5) * 0.04;
+          return {
+            ...v,
+            latitude: lat + latDelta,
+            longitude: lng + lngDelta,
+          };
+        });
+        LOCAL_VACANCIES = populated;
+        return populated;
       }
     } catch (e) {
       console.log('Backend indisponível, servindo dados locais de vagas...');

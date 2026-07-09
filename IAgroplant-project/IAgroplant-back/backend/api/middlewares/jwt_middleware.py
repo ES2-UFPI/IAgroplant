@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 
 from domains.auth.domain.services.token_service import TokenService
-from domains.auth.infrastructure.persistence.postgres_auth_repository import PostgresAuthRepository
+from shared.utils.repository_factory import get_auth_repository
 
 
 
@@ -94,7 +94,7 @@ class JWTMiddleware:
             if not TokenService.is_access_token(
                 payload
             ):
-
+                print("DEBUG JWT: Token não é de acesso")
                 return JsonResponse(
 
                     {
@@ -108,7 +108,7 @@ class JWTMiddleware:
 
 
 
-            repo = PostgresAuthRepository()
+            repo = get_auth_repository()
 
 
             user = repo.find_by_id(
@@ -119,7 +119,7 @@ class JWTMiddleware:
 
 
             if not user or not user.is_active:
-
+                print(f"DEBUG JWT: Usuário {payload.get('sub')} não encontrado ou inativo")
 
                 return JsonResponse(
 
@@ -139,7 +139,7 @@ class JWTMiddleware:
 
 
         except ValueError as e:
-
+            print(f"DEBUG JWT: ValueError no decode do token: {e}")
 
             return JsonResponse(
 

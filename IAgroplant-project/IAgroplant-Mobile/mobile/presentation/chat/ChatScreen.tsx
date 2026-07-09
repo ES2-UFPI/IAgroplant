@@ -15,7 +15,7 @@ import {
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../auth/AuthContext';
 
-const CHAT_SOCKET_URL = 'http://localhost:3001';
+const CHAT_SOCKET_URL = 'http://192.168.0.110:3001';
 const MESSAGE_LIMIT = 500;
 
 const CHAT_ROOMS = [
