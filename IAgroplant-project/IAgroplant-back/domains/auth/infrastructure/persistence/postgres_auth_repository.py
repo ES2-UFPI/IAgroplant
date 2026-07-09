@@ -14,6 +14,22 @@ class PostgresAuthRepository(AuthRepository):
                 name="Administrador",
                 role="admin",
                 is_active=True,
+                region="Distrito Federal",
+                certificado=True,
+                especialidades=["Manejo de Pragas", "Solo"],
+            )
+
+        if email == "estudante@teste.com":
+
+            return User(
+                id="estudante-1",
+                email="estudante@teste.com",
+                name="Estudante Piauí",
+                role="estudante",
+                is_active=True,
+                region="Piauí",
+                certificado=False,
+                especialidades=["Culturas Anuais"],
             )
 
         return None
@@ -28,6 +44,22 @@ class PostgresAuthRepository(AuthRepository):
                 name="Administrador",
                 role="admin",
                 is_active=True,
+                region="Distrito Federal",
+                certificado=True,
+                especialidades=["Manejo de Pragas", "Solo"],
+            )
+
+        if user_id == "estudante-1":
+
+            return User(
+                id="estudante-1",
+                email="estudante@teste.com",
+                name="Estudante Piauí",
+                role="estudante",
+                is_active=True,
+                region="Piauí",
+                certificado=False,
+                especialidades=["Culturas Anuais"],
             )
 
         return None
@@ -38,7 +70,10 @@ class PostgresAuthRepository(AuthRepository):
         password: str,
     ) -> bool:
 
-        return (
-            email == "admin@teste.com"
-            and password == "123456"
-        )
+        if email == "admin@teste.com":
+            return password == "123456"
+
+        if email == "estudante@teste.com":
+            return password == "123456"
+
+        return False

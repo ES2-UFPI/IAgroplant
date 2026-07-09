@@ -34,6 +34,7 @@ class PostSerializer(serializers.Serializer):
 
     def get_author(self, obj):
         return {
+            "id": obj.author_id,
             "name": obj.author_name,
             "role": obj.author_role,
             "initials": obj.author_initials,

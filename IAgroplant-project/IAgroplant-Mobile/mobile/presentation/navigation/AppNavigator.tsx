@@ -14,6 +14,9 @@ import { LoginScreen } from '../auth/LoginScreen';
 import { FeedScreen } from '../feed/FeedScreen';
 import { ProfileScreen } from '../profile/ProfileScreen';
 import { ProfileEditScreen } from '../profile/ProfileEditScreen';
+import { DiagnosticHistoryScreen } from '../profile/DiagnosticHistoryScreen';
+import { DiagnosticReviewScreen } from '../profile/DiagnosticReviewScreen';
+import { ConnectionsScreen } from '../connections/ConnectionsScreen';
 import { OpportunitiesScreen } from '../opportunities/OpportunitiesScreen';
 import DiagnosticScreen from "../screens/DiagnosticScreen";
 import { ChatScreen } from '../chat/ChatScreen';
@@ -59,11 +62,18 @@ function HomeScreen({ navigation }: any) {
         <Text style={styles.buttonText}>🔔 Notificações</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[styles.button, { backgroundColor: '#d97706', marginTop: 10 }]}
         onPress={() => navigation.navigate('Profile')}
       >
         <Text style={styles.buttonText}>Abrir Perfil</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: '#7c3aed', marginTop: 10 }]}
+        onPress={() => navigation.navigate('Connections')}
+      >
+        <Text style={styles.buttonText}>🤝 Conexões</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -133,6 +143,24 @@ function AuthGate() {
               name="ProfileEdit"
               component={ProfileEditScreen}
               options={{ title: 'Editar Perfil' }}
+            />
+
+            <Stack.Screen
+              name="DiagnosticHistory"
+              component={DiagnosticHistoryScreen}
+              options={{ title: 'Histórico de Diagnósticos' }}
+            />
+
+            <Stack.Screen
+              name="DiagnosticReview"
+              component={DiagnosticReviewScreen}
+              options={{ title: 'Confirmar Diagnósticos' }}
+            />
+
+            <Stack.Screen
+              name="Connections"
+              component={ConnectionsScreen}
+              options={{ title: 'Conexões' }}
             />
 
             <Stack.Screen

@@ -13,8 +13,15 @@ import {
 } from 'react-native';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../auth/AuthContext';
+import { MarkChatReplyUsefulUseCase } from '../../application/use-cases/MarkChatReplyUsefulUseCase';
+import { chatReputationRepository } from '../../application/services/chatReputationService';
 
-const CHAT_SOCKET_URL = 'http://localhost:3001';
+const markChatReplyUsefulUseCase = new MarkChatReplyUsefulUseCase(chatReputationRepository);
+
+// Em um dispositivo físico via Expo Go, "localhost" seria o próprio celular —
+// defina EXPO_PUBLIC_CHAT_SOCKET_URL em .env.local com o IP de LAN da máquina
+// que roda o servidor Node do chat (mesma lógica de EXPO_PUBLIC_API_URL).
+const CHAT_SOCKET_URL = process.env.EXPO_PUBLIC_CHAT_SOCKET_URL ?? 'http://localhost:3001';
 const MESSAGE_LIMIT = 500;
 
 const CHAT_ROOMS = [
@@ -38,6 +45,7 @@ type ChatMessage = {
   horario: string;
   criado_em: string;
   autor_id: string;
+  autor_user_id?: string;
   autor_nome?: string;
 };
 
@@ -61,6 +69,7 @@ export function ChatScreen() {
   const [isConnected, setIsConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
+  const [usefulMarks, setUsefulMarks] = useState<Record<string, boolean>>({});
 
   const socketPayload = useMemo(() => ({
     userId: user?.id ?? 'visitante',
@@ -155,8 +164,23 @@ export function ChatScreen() {
     setText('');
   }
 
+  async function markUseful(item: ChatMessage) {
+    if (!item.autor_user_id || usefulMarks[item.id]) return;
+    setUsefulMarks((current) => ({ ...current, [item.id]: true }));
+    try {
+      await markChatReplyUsefulUseCase.execute(item.autor_user_id, item.id);
+    } catch {
+      setUsefulMarks((current) => {
+        const next = { ...current };
+        delete next[item.id];
+        return next;
+      });
+    }
+  }
+
   function renderMessage({ item }: { item: ChatMessage }) {
     const isMine = item.autor_id === mySocketId;
+    const alreadyMarked = usefulMarks[item.id];
 
     return (
       <View style={[styles.messageRow, isMine ? styles.myRow : styles.otherRow]}>
@@ -169,6 +193,17 @@ export function ChatScreen() {
             <Text style={[styles.tag, isMine && styles.myTag]}>{item.tag}</Text>
             <Text style={[styles.time, isMine && styles.myTime]}>{item.horario}</Text>
           </View>
+          {!isMine && (
+            <TouchableOpacity
+              style={styles.usefulBtn}
+              onPress={() => markUseful(item)}
+              disabled={alreadyMarked}
+            >
+              <Text style={styles.usefulBtnText}>
+                {alreadyMarked ? '✓ Marcada como útil' : '👍 Marcar como útil'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
@@ -338,6 +373,8 @@ const styles = StyleSheet.create({
   myText: { color: '#FFFFFF' },
   otherText: { color: '#1F2937' },
   messageMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 7 },
+  usefulBtn: { marginTop: 6, alignSelf: 'flex-start' },
+  usefulBtnText: { color: '#16A34A', fontSize: 11, fontWeight: '700' },
   tag: { color: '#166534', fontSize: 11, fontWeight: '800' },
   myTag: { color: '#DCFCE7' },
   time: { color: '#9CA3AF', fontSize: 11 },

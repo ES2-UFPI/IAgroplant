@@ -149,7 +149,7 @@ class PostgresPostRepository(PostRepository):
         return None
 
     def list_posts(self, filter_category: Optional[str] = None) -> List[Post]:
-        posts = PostgresPostRepository._posts[:]
+        posts = [p for p in PostgresPostRepository._posts if not p.removed]
         if filter_category and filter_category != "Todos":
             # Mapeamento do mobile: 'Diagnóstico IA' -> 'diagnostic', 'Vagas' -> 'opportunity', 'Manejo' -> 'simple', etc.
             category_map = {

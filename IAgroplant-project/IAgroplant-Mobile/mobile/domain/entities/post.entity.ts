@@ -5,6 +5,7 @@
 export type PostType = 'simple' | 'diagnostic' | 'opportunity';
 
 export interface PostAuthor {
+  id?: string;
   name: string;
   role: string;
   initials: string;

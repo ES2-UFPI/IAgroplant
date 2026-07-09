@@ -4,7 +4,10 @@ import { PublishPostInput } from '../../../domain/repositories/FeedRepository';
 import { GetFeedUseCase } from '../../../application/use-cases/GetFeedUseCase';
 import { PublishPostUseCase } from '../../../application/use-cases/PublishPostUseCase';
 import { ToggleLikeUseCase } from '../../../application/use-cases/ToggleLikeUseCase';
+import { VerifyPostUseCase } from '../../../application/use-cases/VerifyPostUseCase';
+import { RemovePostUseCase } from '../../../application/use-cases/RemovePostUseCase';
 import { feedRepository } from '../../../application/services/postService';
+import { moderationRepository } from '../../../application/services/moderationService';
 import { useAuth } from '../../auth/AuthContext';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
@@ -19,6 +22,8 @@ export const FILTER_CATEGORIES = [
 const getFeedUseCase = new GetFeedUseCase(feedRepository);
 const publishPostUseCase = new PublishPostUseCase(feedRepository);
 const toggleLikeUseCase = new ToggleLikeUseCase(feedRepository);
+const verifyPostUseCase = new VerifyPostUseCase(moderationRepository);
+const removePostUseCase = new RemovePostUseCase(moderationRepository);
 
 // ─── FEED VIEW MODEL ─────────────────────────────────────────────────────────
 // Hook que atua como FeedViewModel conforme diagrama de classes da Wiki.
@@ -112,6 +117,22 @@ export function useFeed(initialFilter = 'Todos') {
     }
   }
 
+  // ─── MODERAÇÃO (via Verify/RemovePostUseCase) ─────────────────────────────
+
+  async function verifyPost(postId: number | string) {
+    await verifyPostUseCase.execute(postId);
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId ? { ...p, author: { ...p.author, verified: true } } : p
+      )
+    );
+  }
+
+  async function removePost(postId: number | string) {
+    await removePostUseCase.execute(postId);
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+  }
+
   // ─── PUBLISH POST (via PublishPostUseCase) ────────────────────────────────
 
   async function publishPost(type: PostType, input: Omit<PublishPostInput, 'authorId' | 'authorName' | 'authorInitials' | 'authorVerified'>) {
@@ -151,6 +172,8 @@ export function useFeed(initialFilter = 'Todos') {
     error,
     loadMore,
     toggleLike,
+    verifyPost,
+    removePost,
     publishPost,
     refresh: () => loadPosts(activeFilter, true),
   };

@@ -19,6 +19,7 @@ class Post:
     likes: List[str] = field(default_factory=list)  # Lista de IDs de usuários que curtiram
     comments_count: int = 0
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    removed: bool = False
 
     # Específicos para diagnóstico
     pathogen: Optional[str] = None

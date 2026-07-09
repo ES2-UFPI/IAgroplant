@@ -15,6 +15,7 @@ let LOCAL_PROFILE: UserProfile = {
   certificado: false,
   especialidades: [],
   photo_url: null,
+  reputacao: 0,
 };
 
 // ─── IMPLEMENTATION ───────────────────────────────────────────────────────────
