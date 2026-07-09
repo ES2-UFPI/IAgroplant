@@ -141,6 +141,13 @@ export function ProfileScreen() {
       )}
 
       <TouchableOpacity
+        style={[styles.editButton, { backgroundColor: '#7c3aed' }]}
+        onPress={() => navigation.navigate('Connections')}
+      >
+        <Text style={styles.editButtonText}>🤝 Conexões</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
         style={styles.editButton}
         onPress={() => navigation.navigate('ProfileEdit')}
         disabled={isLoading}
