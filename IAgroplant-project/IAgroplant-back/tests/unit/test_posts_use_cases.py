@@ -47,6 +47,15 @@ class TestListPostsUseCase:
         assert results[0].id == "test-post-id"
         mock_post_repo.list_posts.assert_called_once_with(filter_category="Todos")
 
+    def test_list_posts_by_tag(self, mock_post_repo, sample_post):
+        mock_post_repo.list_posts.return_value = [sample_post]
+
+        use_case = ListPostsUseCase(repository=mock_post_repo)
+        results = use_case.execute(ListPostsInput(filter_category="Todos", tag="soja"))
+
+        assert len(results) == 1
+        mock_post_repo.list_posts.assert_called_with(filter_category="Todos", tag="soja")
+
 
 # ─── CreatePostUseCase Tests ────────────────────────────────────────────────
 
