@@ -14,7 +14,7 @@ class PostRepository(ABC):
         pass
 
     @abstractmethod
-    def list_posts(self, filter_category: Optional[str] = None) -> List[Post]:
+    def list_posts(self, filter_category: Optional[str] = None, tag: Optional[str] = None) -> List[Post]:
         pass
 
     @abstractmethod
