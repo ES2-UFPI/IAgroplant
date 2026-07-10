@@ -128,6 +128,7 @@ export function FeedScreen({ navigation, title = 'IAgroplant', initialFilter = '
             currentUserId={profile?.id}
             onVerify={verifyPost}
             onRemove={removePost}
+            onTagPress={setActiveFilter}
           />
         )}
         ListHeaderComponent={
