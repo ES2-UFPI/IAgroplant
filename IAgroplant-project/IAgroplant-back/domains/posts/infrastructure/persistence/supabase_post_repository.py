@@ -41,18 +41,24 @@ class SupabasePostRepository(PostRepository):
         except Exception:
             return None
 
-    def list_posts(self, filter_category: Optional[str] = None) -> List[Post]:
+    def list_posts(self, filter_category: Optional[str] = None, tag: Optional[str] = None) -> List[Post]:
         if not self._client:
             return []
         try:
             query = self._client.table("posts").select("*")
+            
+            if tag:
+                query = query.cs("tags", [tag])
+                
             if filter_category and filter_category != "Todos":
                 category_map = {
                     "Diagnóstico IA": "diagnostic",
                     "Vagas": "opportunity",
                 }
-                mapped_type = category_map.get(filter_category, "simple")
-                query = query.eq("type", mapped_type)
+                if filter_category in category_map:
+                    query = query.eq("type", category_map[filter_category])
+                else:
+                    query = query.cs("tags", [filter_category])
             
             # Ordenação decrescente por data
             response = query.order("created_at", desc=True).execute()
@@ -65,8 +71,7 @@ class SupabasePostRepository(PostRepository):
                 posts.append(self._map_dict_to_post(item, likes))
             return posts
         except Exception as e:
-            import traceback
-            traceback.print_exc()
+            print(f"Error in list_posts: {e}")
             return []
 
     def like_post(self, post_id: str, user_id: str) -> bool:
