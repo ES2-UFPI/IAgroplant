@@ -14,44 +14,41 @@ class FakeAIClient(AIProvider):
         diagnostics = [
 
             """
-            Pathogen: Ferrugem Asiática
+            Patógeno: Ferrugem Asiática
 
-            Severity: Alta
+            Severidade: Alta
 
-            Management:
+            Manejo:
             Aplicar fungicida triazol e monitorar semanalmente.
 
-            Technical Warning:
+            Aviso Técnico:
             Realizar inspeção das folhas inferiores.
             """,
 
-
             """
-            Pathogen: Oídio
+            Patógeno: Oídio
 
-            Severity: Baixa
+            Severidade: Baixa
 
-            Management:
+            Manejo:
             Melhorar ventilação e utilizar enxofre.
 
-            Technical Warning:
+            Aviso Técnico:
             Evitar excesso de umidade.
             """,
 
-
             """
-            Pathogen: Deficiência de Nitrogênio
+            Patógeno: Deficiência de Nitrogênio
 
-            Severity: Média
+            Severidade: Média
 
-            Management:
+            Manejo:
             Realizar adubação nitrogenada.
 
-            Technical Warning:
+            Aviso Técnico:
             Avaliar análise de solo.
             """
 
         ]
-
 
         return choice(diagnostics)

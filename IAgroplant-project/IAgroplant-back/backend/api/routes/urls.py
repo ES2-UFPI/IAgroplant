@@ -80,5 +80,12 @@ urlpatterns = [
             "backend.api.routes.diagnostics_history_urls"
         )
     ),
+    path(
+        "diagnostics/history/",
+        include(
+            "backend.api.routes.diagnostics_history_urls"
+        ),
+    ),
+
 
 ]

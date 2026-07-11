@@ -36,11 +36,53 @@ class PostgresDiagnosticRecordRepository(
 
                 "confirmed": record.confirmed,
 
+                "confirmed_by": record.confirmed_by,
+
+                "confirmed_at": record.confirmed_at,
+
             },
 
         )
 
         return record
+
+    def update(
+        self,
+        record: DiagnosticRecord,
+    ) -> DiagnosticRecord:
+
+        DiagnosticRecordModel.objects.filter(
+            id=record.id
+        ).update(
+
+            pathogen=record.pathogen,
+
+            severity=record.severity,
+
+            management=record.management,
+
+            technical_warning=record.technical_warning,
+
+            confirmed=record.confirmed,
+
+            confirmed_by=record.confirmed_by,
+
+            confirmed_at=record.confirmed_at,
+
+        )
+
+        return record
+
+    def delete(
+        self,
+        record_id: str,
+    ) -> bool:
+
+        deleted, _ = DiagnosticRecordModel.objects.filter(
+            id=record_id
+        ).delete()
+
+        return deleted > 0
 
     def get_by_id(
         self,
@@ -127,6 +169,31 @@ class PostgresDiagnosticRecordRepository(
 
             confirmed=model.confirmed,
 
+            confirmed_by=model.confirmed_by,
+
+            confirmed_at=model.confirmed_at,
+
             created_at=created,
 
         )
+    def get_by_id_and_user(
+        self,
+        record_id: str,
+        user_id: str,
+    ) -> Optional[DiagnosticRecord]:
+
+        try:
+
+            model = DiagnosticRecordModel.objects.get(
+
+                id=record_id,
+
+                user_id=user_id,
+
+            )
+
+            return self._to_entity(model)
+
+        except DiagnosticRecordModel.DoesNotExist:
+
+            return None

@@ -2,6 +2,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, serializers
 
+from domains.ai.application.use_cases.get_diagnostic_by_id_use_case import (
+    GetDiagnosticByIdUseCase,
+)
+
 from shared.utils.repository_factory import (
     get_diagnostic_record_repository,
     get_user_repository,
@@ -14,6 +18,10 @@ from domains.ai.application.use_cases.confirm_diagnostic_use_case import (
     ConfirmDiagnosticInput,
 )
 
+from domains.ai.application.use_cases.delete_diagnostic_use_case import (
+    DeleteDiagnosticUseCase,
+    DeleteDiagnosticInput,
+)
 
 # ─── SERIALIZERS ──────────────────────────────────────────────────────────────
 
@@ -102,3 +110,137 @@ class ConfirmDiagnosticView(APIView):
             return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class DiagnosticDetailView(APIView):
+    """
+    GET /api/diagnostics/<id>
+    """
+
+    def get(
+        self,
+        request,
+        record_id,
+    ):
+
+        current_user = getattr(
+            request,
+            "current_user",
+            None,
+        )
+
+        if not current_user:
+
+            return Response(
+
+                {
+                    "detail": "Não autenticado."
+                },
+
+                status=status.HTTP_401_UNAUTHORIZED,
+
+            )
+
+        use_case = GetDiagnosticByIdUseCase(
+
+            repository=get_diagnostic_record_repository()
+
+        )
+
+        try:
+
+            record = use_case.execute(
+
+                record_id,
+
+                current_user.id,
+
+            )
+
+            return Response(
+
+                DiagnosticRecordSerializer(record).data,
+
+                status=status.HTTP_200_OK,
+
+            )
+
+        except ValueError as e:
+
+            return Response(
+
+                {
+                    "detail": str(e)
+                },
+
+                status=status.HTTP_404_NOT_FOUND,
+
+            )
+
+class DeleteDiagnosticView(APIView):
+    """
+    DELETE /api/diagnostics/<id>
+    """
+
+    def delete(
+        self,
+        request,
+        record_id,
+    ):
+
+        current_user = getattr(
+            request,
+            "current_user",
+            None,
+        )
+
+        if not current_user:
+
+            return Response(
+
+                {
+                    "detail": "Não autenticado."
+                },
+
+                status=status.HTTP_401_UNAUTHORIZED,
+
+            )
+
+        use_case = DeleteDiagnosticUseCase(
+
+            repository=get_diagnostic_record_repository()
+
+        )
+
+        try:
+
+            use_case.execute(
+
+                DeleteDiagnosticInput(
+
+                    record_id=record_id,
+
+                    user_id=current_user.id,
+
+                )
+
+            )
+
+            return Response(
+
+                status=status.HTTP_204_NO_CONTENT,
+
+            )
+
+        except ValueError as e:
+
+            return Response(
+
+                {
+
+                    "detail": str(e)
+
+                },
+
+                status=status.HTTP_404_NOT_FOUND,
+
+            )
