@@ -61,3 +61,15 @@ class PostgresUserRepository(UserRepository):
             if u.role.lower() == role.lower() and (u.region or "").lower() == region.lower()
         ]
 
+    def search_specialists(self, topic: str, region: Optional[str] = None) -> List[User]:
+        topic_lower = topic.lower()
+        results = []
+        for u in PostgresUserRepository._users:
+            if not u.certificado:
+                continue
+            if not any(topic_lower in e.lower() for e in u.especialidades):
+                continue
+            if region and (u.region or "").lower() != region.lower():
+                continue
+            results.append(u)
+        return results
