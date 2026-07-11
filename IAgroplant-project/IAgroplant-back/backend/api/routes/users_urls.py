@@ -2,6 +2,7 @@ from django.urls import path
 from domains.users.presentation.controllers.users_controller import (
     MeProfileView,
     MeProfilePhotoView,
+    SpecialistSearchView,
 )
 
 urlpatterns = [
@@ -14,5 +15,10 @@ urlpatterns = [
         "users/me/photo",
         MeProfilePhotoView.as_view(),
         name="users-me-photo"
+    ),
+    path(
+        "specialists/search",
+        SpecialistSearchView.as_view(),
+        name="specialists-search"
     ),
 ]

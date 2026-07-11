@@ -7,6 +7,10 @@ from shared.utils.repository_factory import get_user_repository, get_reputation_
 from domains.users.application.use_cases.get_profile_use_case import GetProfileUseCase
 from domains.users.application.use_cases.update_profile_use_case import UpdateProfileUseCase, UpdateProfileInput
 from domains.users.application.use_cases.update_profile_photo_use_case import UpdateProfilePhotoUseCase
+from domains.users.application.use_cases.search_specialists_use_case import (
+    SearchSpecialistsUseCase,
+    SearchSpecialistsInput,
+)
 from domains.reputation.application.use_cases.get_reputation_summary_use_case import GetReputationSummaryUseCase
 from integrations.storage.cloudinary_service import CloudinaryStorageService
 
@@ -22,6 +26,16 @@ class ProfileSerializer(serializers.Serializer):
     certificado = serializers.BooleanField(read_only=True)
     especialidades = serializers.ListField(child=serializers.CharField(), required=False)
     photo_url = serializers.CharField(read_only=True, allow_null=True)
+
+
+class SpecialistResultSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    name = serializers.CharField()
+    region = serializers.CharField(allow_null=True)
+    especialidades = serializers.ListField(child=serializers.CharField())
+    certificado = serializers.BooleanField()
+    photo_url = serializers.CharField(allow_null=True)
+    reputacao = serializers.IntegerField()
 
 
 class UpdateProfileSerializer(serializers.Serializer):
@@ -126,3 +140,37 @@ class MeProfilePhotoView(APIView):
                 {"detail": "Erro interno ao enviar a foto de perfil."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class SpecialistSearchView(APIView):
+    """
+    GET /api/specialists/search?topic=macaxeira&region=Piauí
+
+    Busca profissionais certificados cuja lista de especialidades contenha
+    o tema pesquisado, ordenados por reputação (mais relevantes primeiro).
+    Usado para que o usuário encontre um especialista e inicie uma conversa
+    com ele no chat (Product Backlog #8).
+    """
+
+    def get(self, request):
+        current_user = getattr(request, "current_user", None)
+        if not current_user:
+            return Response({"detail": "Não autenticado."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        topic = request.query_params.get("topic", "")
+        region = request.query_params.get("region") or None
+
+        use_case = SearchSpecialistsUseCase(
+            user_repository=get_user_repository(),
+            reputation_repository=get_reputation_repository(),
+        )
+
+        try:
+            results = use_case.execute(SearchSpecialistsInput(topic=topic, region=region))
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            SpecialistResultSerializer(results, many=True).data,
+            status=status.HTTP_200_OK,
+        )

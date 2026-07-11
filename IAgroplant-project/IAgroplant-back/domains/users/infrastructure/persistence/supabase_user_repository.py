@@ -56,6 +56,26 @@ class SupabaseUserRepository(UserRepository):
         except Exception:
             return []
 
+    def search_specialists(self, topic: str, region: Optional[str] = None) -> List[User]:
+        if not self._client:
+            return []
+        try:
+            query = self._client.table("users").select("*").eq("certificado", True)
+            if region:
+                query = query.eq("region", region)
+            response = query.execute()
+            if not response.data:
+                return []
+
+            topic_lower = topic.lower()
+            users = [self._map_to_entity(item) for item in response.data]
+            return [
+                u for u in users
+                if any(topic_lower in e.lower() for e in u.especialidades)
+            ]
+        except Exception:
+            return []
+
     def _map_to_entity(self, data: dict) -> User:
         return User(
             id=data["id"],

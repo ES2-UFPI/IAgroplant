@@ -17,3 +17,6 @@ class UserRepository(ABC):
     def find_by_role_and_region(self, role: str, region: str) -> list[User]:
         pass
 
+    @abstractmethod
+    def search_specialists(self, topic: str, region: Optional[str] = None) -> list[User]:
+        pass
