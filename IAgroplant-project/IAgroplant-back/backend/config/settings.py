@@ -37,7 +37,6 @@ ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
 
-    # Django
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -45,8 +44,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    # DRF
     "rest_framework",
+
+    "backend.persistence",
+
 ]
 
 
