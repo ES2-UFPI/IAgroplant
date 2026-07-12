@@ -20,6 +20,7 @@ import { ProfileEditScreen } from '../profile/ProfileEditScreen';
 import { DiagnosticHistoryScreen } from '../profile/DiagnosticHistoryScreen';
 import { DiagnosticReviewScreen } from '../profile/DiagnosticReviewScreen';
 import { ConnectionsScreen } from '../connections/ConnectionsScreen';
+import { SpecialistsScreen } from '../specialists/SpecialistsScreen';
 import { OpportunitiesScreen } from '../opportunities/OpportunitiesScreen';
 import DiagnosticScreen from "../screens/DiagnosticScreen";
 import { ChatScreen } from '../chat/ChatScreen';
@@ -282,6 +283,12 @@ function AuthGate() {
               name="Connections"
               component={ConnectionsScreen}
               options={{ title: 'Conexões' }}
+            />
+            
+            <Stack.Screen
+              name="Specialists"
+              component={SpecialistsScreen}
+              options={{ title: 'Buscar Especialistas' }}
             />
 
             <Stack.Screen
