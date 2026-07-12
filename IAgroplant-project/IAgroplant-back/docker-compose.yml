@@ -10,34 +10,57 @@ services:
       POSTGRES_USER: app_user
       POSTGRES_PASSWORD: app_password
 
+
     ports:
       - "5432:5432"
+
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
 
+    healthcheck:
+
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U app_user -d app_db"
+        ]
+
+      interval: 5s
+
+      timeout: 5s
+
+      retries: 10
+
+
+
   backend:
 
-    build:
-      context: .
+    build: .
+
 
     container_name: django_backend
+
 
     env_file:
       - .env
 
+
     ports:
-      - "0.0.0.0:8000:8000"
+      - "8000:8000"
+
 
     volumes:
       - .:/app
 
-    depends_on:
-      - db
 
-    command:
-      python manage.py runserver 0.0.0.0:8000
+    depends_on:
+
+      db:
+
+        condition: service_healthy
+
 
 
 volumes:
