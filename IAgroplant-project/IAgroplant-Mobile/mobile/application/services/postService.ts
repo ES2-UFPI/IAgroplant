@@ -59,6 +59,31 @@ const MOCK_POSTS: Post[] = [
     likes: 91, comments: 27, region: 'Pará', time: 'há 1d',
     category: 'Vagas', liked: false, salary: 'R$ 5.800/mês + PLR', duration: 'CLT',
   }),
+  createPost('simple', {
+    id: 7,
+    author: { name: 'Mariana Silva', role: 'Produtora', initials: 'MS', verified: true },
+    content: 'Iniciando o controle preventivo na lavoura de #Tomate. Alguma sugestão para alternaria?',
+    tags: ['Tomate', 'Manejo', 'Pragas'],
+    likes: 12, comments: 4, region: 'São Paulo', time: 'agora',
+    category: 'Manejo', liked: false,
+  }),
+  createPost('diagnostic', {
+    id: 8,
+    author: { name: 'Dr. Lucas Ribeiro', role: 'Consultor', initials: 'LR', verified: true },
+    content: 'Diagnóstico em #Tomate: detectada Mancha Bacteriana (Xanthomonas spp.). Recomendado controle de umidade e aplicação de cobre.',
+    tags: ['Tomate', 'Doença', 'Pragas'],
+    likes: 45, comments: 11, region: 'Minas Gerais', time: 'há 10min',
+    category: 'Diagnóstico IA', liked: false,
+    pathogen: 'Xanthomonas spp.', severity: 'Moderada',
+  }),
+  createPost('opportunity', {
+    id: 9,
+    author: { name: 'Sítio Recanto', role: 'Produtor', initials: 'SR', verified: false },
+    content: 'Procura-se auxiliar de colheita para lavoura de #Tomate cereja.',
+    tags: ['Tomate', 'Vaga', 'Colheita'],
+    likes: 3, comments: 2, region: 'Espírito Santo', time: 'há 1h',
+    category: 'Vagas', liked: false, salary: 'R$ 1.800/mês', duration: '3 meses',
+  }),
 ];
 
 const PAGE_SIZE = 4;
@@ -82,7 +107,12 @@ export class MockPostService implements IFeedRepository {
         ? MOCK_POSTS
         : MOCK_POSTS.filter((p) => {
             if (CATEGORY_MAP[filter]) return p.type === CATEGORY_MAP[filter];
-            return p.category === filter;
+            // Se for uma categoria padrão cadastrada nas constantes
+            if (['Diagnóstico IA', 'Vagas', 'Manejo', 'Pragas', 'Irrigação'].includes(filter)) {
+              return p.category === filter;
+            }
+            // Caso contrário, busca no array de tags (case-insensitive)
+            return p.tags && p.tags.some(t => t.toLowerCase() === filter.toLowerCase());
           });
 
     const start = (page - 1) * PAGE_SIZE;

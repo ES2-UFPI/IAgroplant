@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional, cast
 import bcrypt
 from supabase import create_client, Client
 from decouple import config
@@ -30,7 +30,7 @@ class SupabaseAuthRepository(AuthRepository):
         if not response.data:
             return None
 
-        data = response.data
+        data: dict[str, Any] = cast(dict[str, Any], response.data)
         return User(
             id=data["id"],
             email=data["email"],
@@ -56,7 +56,7 @@ class SupabaseAuthRepository(AuthRepository):
         if not response.data:
             return None
 
-        data = response.data
+        data: dict[str, Any] = cast(dict[str, Any], response.data)
         return User(
             id=data["id"],
             email=data["email"],

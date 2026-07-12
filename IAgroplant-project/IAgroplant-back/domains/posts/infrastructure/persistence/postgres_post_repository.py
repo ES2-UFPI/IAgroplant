@@ -148,16 +148,24 @@ class PostgresPostRepository(PostRepository):
                 return p
         return None
 
-    def list_posts(self, filter_category: Optional[str] = None) -> List[Post]:
+    def list_posts(self, filter_category: Optional[str] = None, tag: Optional[str] = None) -> List[Post]:
         posts = [p for p in PostgresPostRepository._posts if not p.removed]
+        
+        if tag:
+            posts = [p for p in posts if tag.lower() in [t.lower() for t in p.tags]]
+            
         if filter_category and filter_category != "Todos":
             # Mapeamento do mobile: 'Diagnóstico IA' -> 'diagnostic', 'Vagas' -> 'opportunity', 'Manejo' -> 'simple', etc.
             category_map = {
                 "Diagnóstico IA": "diagnostic",
                 "Vagas": "opportunity",
             }
-            mapped_type = category_map.get(filter_category, "simple")
-            posts = [p for p in posts if p.type == mapped_type]
+            if filter_category in category_map:
+                mapped_type = category_map[filter_category]
+                posts = [p for p in posts if p.type == mapped_type]
+            else:
+                # Trata a categoria como tag para os mocks
+                posts = [p for p in posts if filter_category.lower() in [t.lower() for t in p.tags]]
 
         # Ordenar decrescente por data de criação
         posts.sort(key=lambda p: p.created_at, reverse=True)

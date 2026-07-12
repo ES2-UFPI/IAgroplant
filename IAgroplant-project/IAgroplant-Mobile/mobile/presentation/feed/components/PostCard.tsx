@@ -41,14 +41,19 @@ function TypeBadge({ badge }: { badge: Post['badge'] }) {
 
 // ─── TAG LIST ─────────────────────────────────────────────────────────────────
 
-function TagList({ tags }: { tags?: string[] }) {
+function TagList({ tags, onTagPress }: { tags?: string[]; onTagPress?: (tag: string) => void }) {
   if (!tags || !Array.isArray(tags)) return null;
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll}>
       {tags.map((tag) => (
-        <View key={tag} style={styles.tag}>
+        <TouchableOpacity
+          key={tag}
+          style={styles.tag}
+          onPress={() => onTagPress?.(tag)}
+          activeOpacity={0.7}
+        >
           <Text style={styles.tagText}>#{tag}</Text>
-        </View>
+        </TouchableOpacity>
       ))}
     </ScrollView>
   );
@@ -106,9 +111,10 @@ interface PostCardProps {
   currentUserId?: string;
   onVerify?: (id: number | string) => void;
   onRemove?: (id: number | string) => void;
+  onTagPress?: (tag: string) => void;
 }
 
-export function PostCard({ post, onLike, canModerate, currentUserId, onVerify, onRemove }: PostCardProps) {
+export function PostCard({ post, onLike, canModerate, currentUserId, onVerify, onRemove, onTagPress }: PostCardProps) {
   const showModeration = canModerate && post.author.id !== currentUserId;
   return (
     <View style={styles.card}>
@@ -146,7 +152,7 @@ export function PostCard({ post, onLike, canModerate, currentUserId, onVerify, o
           <Image source={{ uri: post.image }} style={styles.image} resizeMode="cover" />
         )}
 
-        <TagList tags={post.tags} />
+        <TagList tags={post.tags} onTagPress={onTagPress} />
       </View>
 
       {/* Actions */}

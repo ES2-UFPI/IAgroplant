@@ -1,7 +1,8 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
-const API_URL = "http://10.13.64.181:8000/api";
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://10.13.64.181:8000/api";
 
 const api = axios.create({
     baseURL: API_URL,
@@ -133,6 +134,39 @@ export async function patch(
 
     return response.data;
 
+}
+
+export async function uploadFile(
+    url: string,
+    uri: string,
+    fieldName: string = 'file'
+) {
+    try {
+        const formData = new FormData();
+        const filename = uri.split('/').pop() || 'file.jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
+        
+        formData.append(fieldName, {
+            uri: Platform.OS === 'android' ? uri : uri.replace('file://', ''),
+            name: filename,
+            type,
+        } as any);
+
+        const response = await api.post(url, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    } catch (error: any) {
+        console.log("======================");
+        console.log("UPLOAD ERROR");
+        console.log("Status:", error.response?.status);
+        console.log("Resposta:", error.response?.data);
+        console.log("======================");
+        throw error;
+    }
 }
 
 export default api;

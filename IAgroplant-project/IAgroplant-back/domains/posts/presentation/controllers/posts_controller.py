@@ -80,10 +80,11 @@ class ListCreatePostsView(APIView):
 
     def get(self, request):
         filter_category = request.query_params.get("filter", "Todos")
+        tag = request.query_params.get("tag")
         repo = get_post_repository()
         use_case = ListPostsUseCase(repository=repo)
         
-        posts = use_case.execute(ListPostsInput(filter_category=filter_category))
+        posts = use_case.execute(ListPostsInput(filter_category=filter_category, tag=tag))
         
         serializer = PostSerializer(posts, many=True, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
