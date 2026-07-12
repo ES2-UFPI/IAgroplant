@@ -136,3 +136,30 @@ export async function patch(
 }
 
 export default api;
+
+export async function del(
+    url: string,
+) {
+
+    try {
+
+        const response =
+            await api.delete(url);
+
+        return response.data;
+
+    }
+
+    catch (error: any) {
+
+        console.log("======================");
+        console.log("DELETE ERROR");
+        console.log("Status:", error.response?.status);
+        console.log("Resposta:", error.response?.data);
+        console.log("======================");
+
+        throw error;
+
+    }
+
+}

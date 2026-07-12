@@ -22,7 +22,7 @@ import DiagnosticFacade from "../../facade/DiagnosticFacade";
 
 const addLog = (...args: any[]) => console.log(...args);
 
-export default function DiagnosticScreen() {
+export default function DiagnosticScreen({ navigation }: any) {
 
 
     const facade =
@@ -363,7 +363,17 @@ export default function DiagnosticScreen() {
                 onPress={diagnose}
 
             />
+            <View
+                    style={{
+                        marginTop: 15,
+                    }}>
 
+                    <Button
+                        title="Meus Diagnósticos"
+                        onPress={() => navigation.navigate("MyDiagnostics")}
+                    />
+
+            </View>
 
 
             {
@@ -426,7 +436,18 @@ export default function DiagnosticScreen() {
                     <Text style={styles.warning}>
                         {result.technical_warning}
                     </Text>
+                    <View
+                            style={{
+                                marginTop: 20,
+                            }}
+                        >
 
+                            <Button
+                                title="Ver Histórico"
+                                onPress={() => navigation.navigate("MyDiagnostics")}
+                            />
+
+                        </View>
 
                 </View>
 

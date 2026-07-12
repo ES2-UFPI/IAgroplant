@@ -24,7 +24,7 @@ import { OpportunitiesScreen } from '../opportunities/OpportunitiesScreen';
 import DiagnosticScreen from "../screens/DiagnosticScreen";
 import { ChatScreen } from '../chat/ChatScreen';
 import { NotificationsScreen } from '../notifications/NotificationsScreen';
-
+import MyDiagnosticsScreen from "../screens/MyDiagnosticsScreen";
 const Stack = createNativeStackNavigator();
 
 type Account = {
@@ -289,7 +289,19 @@ function AuthGate() {
               component={DiagnosticScreen}
               options={{ title: 'Diagnóstico IA' }}
             />
+            <Stack.Screen
 
+                name="MyDiagnostics"
+
+                component={MyDiagnosticsScreen}
+
+                options={{
+
+                title:"Meus Diagnósticos"
+
+                }}
+
+                />
             <Stack.Screen
               name="Notifications"
               component={NotificationsScreen}

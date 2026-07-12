@@ -1,5 +1,9 @@
-import { DiagnosticRecord } from '../entities/diagnostic-history.entity';
+import { DiagnosticRecord } from "../entities/diagnostic-history.entity";
 
 export interface IDiagnosticHistoryRepository {
-  getMine(): Promise<DiagnosticRecord[]>;
+
+    getMine(): Promise<DiagnosticRecord[]>;
+
+    delete(recordId: string): Promise<void>;
+
 }
