@@ -13,7 +13,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useConnections } from './hooks/useConnections';
 import { useProfile } from '../profile/ProfileViewModel';
 
-export function ConnectionsScreen() {
+export function ConnectionsScreen({ navigation }: any) {
   const { profile } = useProfile();
   const { pending, isSubmitting, sendRequest, accept, reject, refresh } = useConnections();
   const [targetUserId, setTargetUserId] = useState('');
@@ -39,10 +39,17 @@ export function ConnectionsScreen() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.searchSpecialistsBtn}
+            onPress={() => navigation.navigate('Specialists')}
+          >
+            <Text style={styles.searchSpecialistsBtnText}>🔍 Buscar especialistas por tema</Text>
+          </TouchableOpacity>
+
           <Text style={styles.sectionTitle}>Solicitar conexão</Text>
           <Text style={styles.helperText}>
-            Ainda não há um diretório de busca de usuários — informe o ID do usuário que deseja
-            conectar (ex: peça para o profissional compartilhar o ID do perfil dele).
+            Prefere conectar diretamente? Informe o ID do usuário que deseja conectar (ex: peça
+            para o profissional compartilhar o ID do perfil dele).
           </Text>
           <TextInput
             style={styles.input}
@@ -108,6 +115,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 8 },
+  searchSpecialistsBtn: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  searchSpecialistsBtnText: { color: '#1D4ED8', fontWeight: '700', fontSize: 14 },
   helperText: { fontSize: 12, color: '#9CA3AF', marginBottom: 12, lineHeight: 17 },
   input: {
     borderWidth: 1,
