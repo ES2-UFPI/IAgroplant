@@ -14,6 +14,7 @@ import {
 import { PostCard } from './components/PostCard';
 import { FilterBar } from './components/FilterBar';
 import { ComposeBox } from './components/ComposeBox';
+import { CommentsModal } from './components/CommentsModal';
 import { useFeed } from './hooks/useFeed';
 import { Post } from './types/post.types';
 import { useProfile } from '../profile/ProfileViewModel';
@@ -41,11 +42,13 @@ export function FeedScreen({ navigation, title = 'IAgroplant', initialFilter = '
     verifyPost,
     removePost,
     publishPost,
+    incrementCommentCount,
     refresh,
   } = useFeed(initialFilter);
   const { profile } = useProfile();
 
   const [showCompose, setShowCompose] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   function handlePublish(type: any, input: { content: string; image?: string }) {
     publishPost(type, {
@@ -129,6 +132,7 @@ export function FeedScreen({ navigation, title = 'IAgroplant', initialFilter = '
             onVerify={verifyPost}
             onRemove={removePost}
             onTagPress={setActiveFilter}
+            onCommentPress={setSelectedPost}
           />
         )}
         ListHeaderComponent={
@@ -163,6 +167,13 @@ export function FeedScreen({ navigation, title = 'IAgroplant', initialFilter = '
             colors={['#16A34A']}
           />
         }
+      />
+
+      <CommentsModal
+        post={selectedPost}
+        visible={!!selectedPost}
+        onClose={() => setSelectedPost(null)}
+        onCommentAdded={incrementCommentCount}
       />
     </SafeAreaView>
   );

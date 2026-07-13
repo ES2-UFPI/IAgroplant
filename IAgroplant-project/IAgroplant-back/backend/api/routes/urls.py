@@ -35,6 +35,13 @@ urlpatterns = [
     path(
         "",
         include(
+            "backend.api.routes.comments_urls"
+        )
+    ),
+
+    path(
+        "",
+        include(
             "backend.api.routes.users_urls"
         )
     ),

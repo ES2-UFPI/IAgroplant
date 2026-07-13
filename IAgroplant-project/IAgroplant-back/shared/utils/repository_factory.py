@@ -25,6 +25,11 @@ from domains.posts.domain.repositories.post_repository import PostRepository
 from domains.posts.infrastructure.persistence.postgres_post_repository import PostgresPostRepository
 from domains.posts.infrastructure.persistence.supabase_post_repository import SupabasePostRepository
 
+# Import Comment repositories
+from domains.comments.domain.repositories.comment_repository import CommentRepository
+from domains.comments.infrastructure.persistence.postgres_comment_repository import PostgresCommentRepository
+from domains.comments.infrastructure.persistence.supabase_comment_repository import SupabaseCommentRepository
+
 # Import Reputation repositories
 from domains.reputation.domain.repositories.reputation_repository import ReputationRepository
 from domains.reputation.infrastructure.persistence.postgres_reputation_repository import PostgresReputationRepository
@@ -43,6 +48,7 @@ _opportunity_repo_instance = None
 _notification_repo_instance = None
 _auth_repo_instance = None
 _post_repo_instance = None
+_comment_repo_instance = None
 _reputation_repo_instance = None
 _connection_repo_instance = None
 _diagnostic_record_repo_instance = None
@@ -112,6 +118,19 @@ def get_post_repository() -> PostRepository:
     else:
         _post_repo_instance = PostgresPostRepository()
     return _post_repo_instance
+
+
+def get_comment_repository() -> CommentRepository:
+    global _comment_repo_instance
+    if _comment_repo_instance is not None:
+        return _comment_repo_instance
+
+    client = get_supabase_client()
+    if client is not None:
+        _comment_repo_instance = SupabaseCommentRepository(client)
+    else:
+        _comment_repo_instance = PostgresCommentRepository()
+    return _comment_repo_instance
 
 
 def get_reputation_repository() -> ReputationRepository:
