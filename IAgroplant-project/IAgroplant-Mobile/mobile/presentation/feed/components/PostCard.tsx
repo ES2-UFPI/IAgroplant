@@ -112,9 +112,10 @@ interface PostCardProps {
   onVerify?: (id: number | string) => void;
   onRemove?: (id: number | string) => void;
   onTagPress?: (tag: string) => void;
+  onCommentPress?: (post: Post) => void;
 }
 
-export function PostCard({ post, onLike, canModerate, currentUserId, onVerify, onRemove, onTagPress }: PostCardProps) {
+export function PostCard({ post, onLike, canModerate, currentUserId, onVerify, onRemove, onTagPress, onCommentPress }: PostCardProps) {
   const showModeration = canModerate && post.author.id !== currentUserId;
   return (
     <View style={styles.card}>
@@ -166,7 +167,7 @@ export function PostCard({ post, onLike, canModerate, currentUserId, onVerify, o
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionBtn}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => onCommentPress?.(post)}>
           <Text style={styles.actionText}>💬 {post.comments}</Text>
         </TouchableOpacity>
 

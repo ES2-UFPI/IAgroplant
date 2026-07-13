@@ -138,6 +138,16 @@ export function useFeed(initialFilter = 'Todos') {
     setPosts((prev) => prev.filter((p) => p.id !== postId));
   }
 
+  // ─── COMENTÁRIOS ────────────────────────────────────────────────────────────
+  // Atualiza o contador de comentários de um post após um novo comentário ser
+  // publicado via CommentsModal/useComments.
+
+  function incrementCommentCount(postId: number | string) {
+    setPosts((prev) =>
+      prev.map((p) => (p.id === postId ? { ...p, comments: p.comments + 1 } : p))
+    );
+  }
+
   // ─── PUBLISH POST (via PublishPostUseCase) ────────────────────────────────
 
   async function publishPost(type: PostType, input: Omit<PublishPostInput, 'authorId' | 'authorName' | 'authorInitials' | 'authorVerified'>) {
@@ -180,6 +190,7 @@ export function useFeed(initialFilter = 'Todos') {
     verifyPost,
     removePost,
     publishPost,
+    incrementCommentCount,
     refresh: () => loadPosts(activeFilter, true),
   };
 }
