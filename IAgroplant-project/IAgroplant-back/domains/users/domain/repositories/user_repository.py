@@ -22,6 +22,14 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
+    def get_interactive_onboarding_status(self, user_id: str) -> Optional[User]:
+        pass
+
+    @abstractmethod
+    def mark_interactive_onboarding_completed(self, user_id: str) -> Optional[User]:
+        pass
+
+    @abstractmethod
     def find_by_role_and_region(self, role: str, region: str) -> list[User]:
         pass
 

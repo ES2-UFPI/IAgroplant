@@ -337,14 +337,18 @@ def seed():
             ALTER TABLE users
             ADD COLUMN IF NOT EXISTS initial_guidance_completed BOOLEAN DEFAULT FALSE;
         """)
+        cursor.execute("""
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS interactive_onboarding_completed BOOLEAN DEFAULT FALSE;
+        """)
 
         # 2. Insere os usuários
         print("Cadastrando usuários de teste (João, Arthur, Cláudio)...")
         for u in users:
             cursor.execute(
                 """
-                INSERT INTO users (id, email, name, role, is_active, password_hash, region, certificado, especialidades, initial_guidance_completed)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, FALSE)
+                INSERT INTO users (id, email, name, role, is_active, password_hash, region, certificado, especialidades, initial_guidance_completed, interactive_onboarding_completed)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, FALSE, FALSE)
                 ON CONFLICT (email) DO UPDATE SET
                     name = EXCLUDED.name,
                     role = EXCLUDED.role,
