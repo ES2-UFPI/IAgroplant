@@ -14,6 +14,7 @@ class User:
     certificado: bool = False
     especialidades: List[str] = field(default_factory=list)
     photo_url: Optional[str] = None
+    initial_guidance_completed: bool = False
 
     def is_valid(self) -> bool:
         return bool(self.email and self.id and self.is_active)

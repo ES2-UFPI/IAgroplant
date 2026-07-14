@@ -25,6 +25,7 @@ class PostgresUserRepository(UserRepository):
                 region="Distrito Federal",
                 certificado=True,
                 especialidades=["Manejo de Pragas", "Solo"],
+                initial_guidance_completed=False,
             )
         )
         # Mock student for proximity notification testing
@@ -38,6 +39,7 @@ class PostgresUserRepository(UserRepository):
                 region="Piauí",
                 certificado=False,
                 especialidades=["Culturas Anuais"],
+                initial_guidance_completed=False,
             )
         )
 
@@ -54,6 +56,16 @@ class PostgresUserRepository(UserRepository):
                 return user
         PostgresUserRepository._users.append(user)
         return user
+
+    def get_initial_guidance_status(self, user_id: str) -> Optional[User]:
+        return self.get_by_id(user_id)
+
+    def mark_initial_guidance_completed(self, user_id: str) -> Optional[User]:
+        user = self.get_by_id(user_id)
+        if not user:
+            return None
+        user.initial_guidance_completed = True
+        return self.update(user)
 
     def find_by_role_and_region(self, role: str, region: str) -> List[User]:
         return [

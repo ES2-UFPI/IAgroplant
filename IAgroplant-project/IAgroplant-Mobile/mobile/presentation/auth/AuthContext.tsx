@@ -261,7 +261,15 @@ export function AuthProvider({
 
       ) => {
 
-        if (!user) {
+        const storedUser =
+          user ??
+          JSON.parse(
+            (await AsyncStorage.getItem(
+              STORAGE_KEY
+            )) || "null"
+          );
+
+        if (!storedUser) {
 
           return;
 
@@ -269,7 +277,7 @@ export function AuthProvider({
 
         const updated = {
 
-          ...user,
+          ...storedUser,
 
           role,
 

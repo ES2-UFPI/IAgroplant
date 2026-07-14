@@ -14,6 +14,14 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
+    def get_initial_guidance_status(self, user_id: str) -> Optional[User]:
+        pass
+
+    @abstractmethod
+    def mark_initial_guidance_completed(self, user_id: str) -> Optional[User]:
+        pass
+
+    @abstractmethod
     def find_by_role_and_region(self, role: str, region: str) -> list[User]:
         pass
 
