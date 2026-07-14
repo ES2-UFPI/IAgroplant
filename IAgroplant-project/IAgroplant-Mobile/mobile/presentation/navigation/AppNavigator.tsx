@@ -25,6 +25,8 @@ import { OpportunitiesScreen } from '../opportunities/OpportunitiesScreen';
 import DiagnosticScreen from "../screens/DiagnosticScreen";
 import { ChatScreen } from '../chat/ChatScreen';
 import { NotificationsScreen } from '../notifications/NotificationsScreen';
+import { InitialGuidanceScreen } from '../initial-guidance/InitialGuidanceScreen';
+import { initialGuidanceService } from '../../application/services/initialGuidanceService';
 
 const Stack = createNativeStackNavigator();
 
@@ -56,8 +58,6 @@ function RoleSelectionScreen({ navigation }: any) {
       await signIn(selectedAccount.email, 'password123');
       // Garante que o papel do usuário seja exatamente o selecionado
       await updateRole(selectedAccount.role);
-      // Navega para as abas principais
-      navigation.replace('MainTabs');
     } catch (e) {
       alert('Erro de conexão ao realizar login.');
     } finally {
@@ -238,6 +238,53 @@ function MainTabNavigator({ navigation, route }: any) {
   );
 }
 
+function InitialGuidanceGate({ navigation }: any) {
+  const { user } = useAuth();
+
+  React.useEffect(() => {
+    let mounted = true;
+
+    async function checkInitialGuidance() {
+      try {
+        const status = await initialGuidanceService.getStatus();
+        if (!mounted) return;
+
+        if (status.completed) {
+          navigation.replace('MainTabs');
+          return;
+        }
+
+        const role =
+          status.user_id === 'demo-user' && user?.role
+            ? user.role
+            : status.role || user?.role;
+
+        navigation.replace('InitialGuidance', {
+          role,
+        });
+      } catch (error) {
+        if (!mounted) return;
+        navigation.replace('InitialGuidance', {
+          role: user?.role,
+        });
+      }
+    }
+
+    checkInitialGuidance();
+
+    return () => {
+      mounted = false;
+    };
+  }, [navigation, user?.role]);
+
+  return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#16A34A" />
+      <Text style={styles.subtitle}>Preparando seu primeiro acesso...</Text>
+    </View>
+  );
+}
+
 function AuthGate() {
   const { user, isLoading } = useAuth();
 
@@ -255,6 +302,18 @@ function AuthGate() {
       <Stack.Navigator>
         {user ? (
           <>
+            <Stack.Screen
+              name="InitialGuidanceGate"
+              component={InitialGuidanceGate}
+              options={{ headerShown: false }}
+            />
+
+            <Stack.Screen
+              name="InitialGuidance"
+              component={InitialGuidanceScreen}
+              options={{ headerShown: false }}
+            />
+
             <Stack.Screen
               name="MainTabs"
               component={MainTabNavigator}
