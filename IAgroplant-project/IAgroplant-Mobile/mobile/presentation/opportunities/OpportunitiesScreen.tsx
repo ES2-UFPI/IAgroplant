@@ -15,10 +15,13 @@ import {
   Platform,
   Animated,
 } from 'react-native';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { useAuth } from '../auth/AuthContext';
 import { useOpportunities, OpportunitiesFilters } from './OportunidadesViewModel';
 import { Vaga } from '../../domain/entities/vaga.types';
 import MapView, { Marker, Circle } from 'react-native-maps';
+
+const CopilotView = walkthroughable(View);
 
 const CITY_COORDINATES: Record<string, { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number }> = {
   teresina: { latitude: -5.0892, longitude: -42.8016, latitudeDelta: 0.12, longitudeDelta: 0.12 },
@@ -27,7 +30,7 @@ const CITY_COORDINATES: Record<string, { latitude: number; longitude: number; la
   parnaíba: { latitude: -2.9098, longitude: -41.7766, latitudeDelta: 0.12, longitudeDelta: 0.12 },
 };
 
-export function OpportunitiesScreen({ navigation, route }: any) {
+export function OpportunitiesScreen({ navigation, route, coachMarksEnabled = false }: any) {
   const { user, updateRole } = useAuth();
   const {
     vagas,
@@ -271,16 +274,25 @@ export function OpportunitiesScreen({ navigation, route }: any) {
           {/* Filters Area */}
           <View style={styles.filtersWrapper}>
             {/* Search by Region */}
-            <View style={styles.searchBarContainer}>
-              <Text style={styles.searchIcon}>🔍</Text>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Buscar por região (ex: Teresina)..."
-                placeholderTextColor="#9CA3AF"
-                value={filters.region}
-                onChangeText={searchByRegion}
-              />
-            </View>
+            <CopilotStep
+              text="Pesquise oportunidades por região para encontrar vagas próximas do seu interesse."
+              order={1}
+              name="opportunities-search"
+              active={coachMarksEnabled}
+            >
+              <CopilotView>
+                <View style={styles.searchBarContainer}>
+                  <Text style={styles.searchIcon}>🔍</Text>
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Buscar por região (ex: Teresina)..."
+                    placeholderTextColor="#9CA3AF"
+                    value={filters.region}
+                    onChangeText={searchByRegion}
+                  />
+                </View>
+              </CopilotView>
+            </CopilotStep>
 
             {/* Culture Chips */}
             <View style={styles.filterChipsRow}>
@@ -373,68 +385,86 @@ export function OpportunitiesScreen({ navigation, route }: any) {
             </View>
           ) : (
             /* Vacancy List */
-            <FlatList<Vaga>
-              data={vagas}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.listContainer}
-              refreshing={isLoading}
-              onRefresh={refresh}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyEmoji}>🌾</Text>
-                  <Text style={styles.emptyTitle}>Nenhuma vaga encontrada</Text>
-                  <Text style={styles.emptySubtitle}>Tente ajustar os filtros de região, cultura ou tipo.</Text>
-                </View>
-              }
-              renderItem={({ item }) => {
-                const alreadyApplied = user?.role !== 'Produtor Rural' && candidaturas.some((app) => app.opportunity_id === item.id && app.user_id === user?.id);
-                return (
-                  <TouchableOpacity style={styles.card} onPress={() => setSelectedVaga(item)}>
-                    <View style={styles.cardHeader}>
-                      <Text style={styles.cardTitle}>{item.title}</Text>
-                      <Text style={[styles.badge, getVacancyTypeBadgeStyle(item.vacancy_type)]}>
-                        {item.vacancy_type}
-                      </Text>
+            <CopilotStep
+              text="Nesta lista você encontra oportunidades disponíveis e pode abrir detalhes de cada vaga."
+              order={2}
+              name="opportunities-list"
+              active={coachMarksEnabled}
+            >
+              <CopilotView style={styles.opportunitiesListCoachWrapper}>
+                <FlatList<Vaga>
+                  data={vagas}
+                  keyExtractor={(item) => item.id}
+                  contentContainerStyle={styles.listContainer}
+                  refreshing={isLoading}
+                  onRefresh={refresh}
+                  ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                      <Text style={styles.emptyEmoji}>🌾</Text>
+                      <Text style={styles.emptyTitle}>Nenhuma vaga encontrada</Text>
+                      <Text style={styles.emptySubtitle}>Tente ajustar os filtros de região, cultura ou tipo.</Text>
                     </View>
-
-                    <Text style={styles.cardProducer}>🚜 {item.producer_name}</Text>
-                    <Text style={styles.cardDesc} numberOfLines={2}>{item.description}</Text>
-
-                    <View style={styles.metaRow}>
-                      <View style={styles.metaCol}>
-                        <Text style={styles.metaLabel}>📍 Região</Text>
-                        <Text style={styles.metaValue}>{item.region}</Text>
-                      </View>
-                      <View style={styles.metaCol}>
-                        <Text style={styles.metaLabel}>🌱 Cultura</Text>
-                        <Text style={styles.metaValue}>{item.culture}</Text>
-                      </View>
-                      <View style={styles.metaCol}>
-                        <Text style={styles.metaLabel}>💰 Salário</Text>
-                        <Text style={styles.metaValue}>{item.salary}</Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.cardFooter}>
-                      <Text style={styles.cardDate}>Expira em: {new Date(item.expires_at).toLocaleDateString('pt-BR')}</Text>
-                      
-                      {alreadyApplied ? (
-                        <View style={styles.appliedBadge}>
-                          <Text style={styles.appliedBadgeText}>✓ Candidatado</Text>
+                  }
+                  renderItem={({ item, index }) => {
+                    const alreadyApplied = user?.role !== 'Produtor Rural' && candidaturas.some((app) => app.opportunity_id === item.id && app.user_id === user?.id);
+                    return (
+                      <TouchableOpacity style={styles.card} onPress={() => setSelectedVaga(item)}>
+                        <View style={styles.cardHeader}>
+                          <Text style={styles.cardTitle}>{item.title}</Text>
+                          <Text style={[styles.badge, getVacancyTypeBadgeStyle(item.vacancy_type)]}>
+                            {item.vacancy_type}
+                          </Text>
                         </View>
-                      ) : (
-                        <TouchableOpacity
-                          style={styles.cardApplyBtn}
-                          onPress={() => applyToVaga(item.id)}
-                        >
-                          <Text style={styles.cardApplyBtnText}>Candidatar-se</Text>
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                );
-              }}
-            />
+
+                        <Text style={styles.cardProducer}>🚜 {item.producer_name}</Text>
+                        <Text style={styles.cardDesc} numberOfLines={2}>{item.description}</Text>
+
+                        <View style={styles.metaRow}>
+                          <View style={styles.metaCol}>
+                            <Text style={styles.metaLabel}>📍 Região</Text>
+                            <Text style={styles.metaValue}>{item.region}</Text>
+                          </View>
+                          <View style={styles.metaCol}>
+                            <Text style={styles.metaLabel}>🌱 Cultura</Text>
+                            <Text style={styles.metaValue}>{item.culture}</Text>
+                          </View>
+                          <View style={styles.metaCol}>
+                            <Text style={styles.metaLabel}>💰 Salário</Text>
+                            <Text style={styles.metaValue}>{item.salary}</Text>
+                          </View>
+                        </View>
+
+                        <View style={styles.cardFooter}>
+                          <Text style={styles.cardDate}>Expira em: {new Date(item.expires_at).toLocaleDateString('pt-BR')}</Text>
+                          
+                          {alreadyApplied ? (
+                            <View style={styles.appliedBadge}>
+                              <Text style={styles.appliedBadgeText}>✓ Candidatado</Text>
+                            </View>
+                          ) : (
+                            <CopilotStep
+                              text="Quando encontrar uma vaga interessante, use este botão para se candidatar."
+                              order={3}
+                              name="opportunities-apply"
+                              active={coachMarksEnabled && index === 0}
+                            >
+                              <CopilotView>
+                                <TouchableOpacity
+                                  style={styles.cardApplyBtn}
+                                  onPress={() => applyToVaga(item.id)}
+                                >
+                                  <Text style={styles.cardApplyBtnText}>Candidatar-se</Text>
+                                </TouchableOpacity>
+                              </CopilotView>
+                            </CopilotStep>
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  }}
+                />
+              </CopilotView>
+            </CopilotStep>
           )}
 
           {/* Floating Action Button (FAB) for Rural Producers to Post Vacancies */}
@@ -932,6 +962,7 @@ const styles = StyleSheet.create({
   gpsButtonText: { fontSize: 12, color: '#4B5563', fontWeight: '600' },
   gpsButtonTextActive: { color: '#fff', fontWeight: '700' },
 
+  opportunitiesListCoachWrapper: { flex: 1 },
   listContainer: { padding: 16, gap: 16, paddingBottom: 80 },
   card: {
     backgroundColor: '#fff',

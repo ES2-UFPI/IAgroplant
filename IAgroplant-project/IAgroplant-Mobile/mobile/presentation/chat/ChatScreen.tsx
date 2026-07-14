@@ -13,11 +13,13 @@ import {
   StatusBar,
 } from 'react-native';
 import { io, Socket } from 'socket.io-client';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { useAuth } from '../auth/AuthContext';
 import { MarkChatReplyUsefulUseCase } from '../../application/use-cases/MarkChatReplyUsefulUseCase';
 import { chatReputationRepository } from '../../application/services/chatReputationService';
 
 const markChatReplyUsefulUseCase = new MarkChatReplyUsefulUseCase(chatReputationRepository);
+const CopilotView = walkthroughable(View);
 
 // Em um dispositivo físico via Expo Go, "localhost" seria o próprio celular —
 // defina EXPO_PUBLIC_CHAT_SOCKET_URL em .env.local com o IP de LAN da máquina
@@ -55,7 +57,11 @@ type OnlineUser = {
   nome?: string;
 };
 
-export function ChatScreen() {
+type ChatScreenProps = {
+  coachMarksEnabled?: boolean;
+};
+
+export function ChatScreen({ coachMarksEnabled = false }: ChatScreenProps) {
   const { user } = useAuth();
   const socketRef = useRef<Socket | null>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
@@ -229,22 +235,31 @@ export function ChatScreen() {
           <View style={[styles.statusDot, isConnected ? styles.statusOnline : styles.statusOffline]} />
         </View>
 
-        <View style={styles.rooms}>
-          <FlatList
-            horizontal
-            data={CHAT_ROOMS}
-            keyExtractor={(item) => item}
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[styles.roomChip, room === item && styles.roomChipActive]}
-                onPress={() => handleRoomChange(item)}
-              >
-                <Text style={[styles.roomText, room === item && styles.roomTextActive]}>{item}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        </View>
+        <CopilotStep
+          text="Use as salas para acompanhar conversas por tema e encontrar assuntos relevantes."
+          order={1}
+          name="chat-rooms"
+          active={coachMarksEnabled}
+        >
+          <CopilotView>
+            <View style={styles.rooms}>
+              <FlatList
+                horizontal
+                data={CHAT_ROOMS}
+                keyExtractor={(item) => item}
+                showsHorizontalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[styles.roomChip, room === item && styles.roomChipActive]}
+                    onPress={() => handleRoomChange(item)}
+                  >
+                    <Text style={[styles.roomText, room === item && styles.roomTextActive]}>{item}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          </CopilotView>
+        </CopilotStep>
 
         {typingCount > 0 ? (
           <Text style={styles.typingText}>
@@ -252,66 +267,84 @@ export function ChatScreen() {
           </Text>
         ) : null}
 
-        <FlatList
-          ref={listRef}
-          data={messages}
-          keyExtractor={(item) => item.id}
-          renderItem={renderMessage}
-          contentContainerStyle={styles.messagesContent}
-          ListEmptyComponent={
-            <View style={styles.empty}>
-              {isConnected ? (
-                <Text style={styles.emptyText}>Nenhuma mensagem nesta sala ainda.</Text>
-              ) : (
-                <>
-                  <ActivityIndicator color="#16A34A" />
-                  <Text style={styles.emptyText}>Aguardando conexão com o chat.</Text>
-                </>
-              )}
-            </View>
-          }
-          onContentSizeChange={scrollToEnd}
-        />
-
-        <View style={styles.composer}>
-          <FlatList
-            horizontal
-            data={writableTags}
-            keyExtractor={(item) => item}
-            showsHorizontalScrollIndicator={false}
-            style={styles.tagList}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                disabled={room !== 'Todas'}
-                style={[styles.tagChip, selectedTag === item && styles.tagChipActive]}
-                onPress={() => setSelectedTag(item)}
-              >
-                <Text style={[styles.tagChipText, selectedTag === item && styles.tagChipTextActive]}>
-                  {item}
-                </Text>
-              </TouchableOpacity>
-            )}
-          />
-          <View style={styles.inputRow}>
-            <TextInput
-              value={text}
-              onChangeText={handleTextChange}
-              placeholder="Escreva sua mensagem..."
-              placeholderTextColor="#9CA3AF"
-              style={styles.input}
-              maxLength={MESSAGE_LIMIT}
-              multiline
+        <CopilotStep
+          text="Aqui aparecem as conversas da sala selecionada."
+          order={2}
+          name="chat-message-list"
+          active={coachMarksEnabled}
+        >
+          <CopilotView style={styles.messagesCoachWrapper}>
+            <FlatList
+              ref={listRef}
+              data={messages}
+              keyExtractor={(item) => item.id}
+              renderItem={renderMessage}
+              contentContainerStyle={styles.messagesContent}
+              ListEmptyComponent={
+                <View style={styles.empty}>
+                  {isConnected ? (
+                    <Text style={styles.emptyText}>Nenhuma mensagem nesta sala ainda.</Text>
+                  ) : (
+                    <>
+                      <ActivityIndicator color="#16A34A" />
+                      <Text style={styles.emptyText}>Aguardando conexão com o chat.</Text>
+                    </>
+                  )}
+                </View>
+              }
+              onContentSizeChange={scrollToEnd}
             />
-            <TouchableOpacity
-              style={[styles.sendButton, (!text.trim() || !isConnected) && styles.sendButtonDisabled]}
-              onPress={sendMessage}
-              disabled={!text.trim() || !isConnected}
-            >
-              <Text style={styles.sendText}>Enviar</Text>
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.counter}>{text.length}/{MESSAGE_LIMIT}</Text>
-        </View>
+          </CopilotView>
+        </CopilotStep>
+
+        <CopilotStep
+          text="Escreva mensagens, escolha uma categoria e converse diretamente com outros usuários."
+          order={3}
+          name="chat-composer"
+          active={coachMarksEnabled}
+        >
+          <CopilotView>
+            <View style={styles.composer}>
+              <FlatList
+                horizontal
+                data={writableTags}
+                keyExtractor={(item) => item}
+                showsHorizontalScrollIndicator={false}
+                style={styles.tagList}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    disabled={room !== 'Todas'}
+                    style={[styles.tagChip, selectedTag === item && styles.tagChipActive]}
+                    onPress={() => setSelectedTag(item)}
+                  >
+                    <Text style={[styles.tagChipText, selectedTag === item && styles.tagChipTextActive]}>
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
+              <View style={styles.inputRow}>
+                <TextInput
+                  value={text}
+                  onChangeText={handleTextChange}
+                  placeholder="Escreva sua mensagem..."
+                  placeholderTextColor="#9CA3AF"
+                  style={styles.input}
+                  maxLength={MESSAGE_LIMIT}
+                  multiline
+                />
+                <TouchableOpacity
+                  style={[styles.sendButton, (!text.trim() || !isConnected) && styles.sendButtonDisabled]}
+                  onPress={sendMessage}
+                  disabled={!text.trim() || !isConnected}
+                >
+                  <Text style={styles.sendText}>Enviar</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.counter}>{text.length}/{MESSAGE_LIMIT}</Text>
+            </View>
+          </CopilotView>
+        </CopilotStep>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -320,6 +353,7 @@ export function ChatScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F3F8F2', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
   container: { flex: 1 },
+  messagesCoachWrapper: { flex: 1 },
   header: {
     backgroundColor: '#FFFFFF',
     borderBottomColor: '#DDE8D8',
