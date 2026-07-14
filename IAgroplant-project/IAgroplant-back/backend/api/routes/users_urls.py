@@ -3,6 +3,7 @@ from domains.users.presentation.controllers.users_controller import (
     MeProfileView,
     MeProfilePhotoView,
     MeInitialGuidanceView,
+    MeInteractiveOnboardingView,
     SpecialistSearchView,
 )
 
@@ -21,6 +22,11 @@ urlpatterns = [
         "users/me/onboarding",
         MeInitialGuidanceView.as_view(),
         name="users-me-onboarding"
+    ),
+    path(
+        "users/me/coach-marks",
+        MeInteractiveOnboardingView.as_view(),
+        name="users-me-coach-marks"
     ),
     path(
         "specialists/search",
