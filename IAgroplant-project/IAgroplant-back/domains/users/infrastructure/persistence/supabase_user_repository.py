@@ -39,6 +39,30 @@ class SupabaseUserRepository(UserRepository):
             pass
         return user
 
+    def get_initial_guidance_status(self, user_id: str) -> Optional[User]:
+        return self.get_by_id(user_id)
+
+    def mark_initial_guidance_completed(self, user_id: str) -> Optional[User]:
+        user = self.get_by_id(user_id)
+        if not user:
+            return None
+
+        try:
+            response = (
+                self._client.table("users")
+                .update({"initial_guidance_completed": True})
+                .eq("id", user_id)
+                .execute()
+            )
+            data = response.data[0] if response.data else None
+            if data:
+                return self._map_to_entity(data)
+        except Exception:
+            pass
+
+        user.initial_guidance_completed = True
+        return user
+
     def find_by_role_and_region(self, role: str, region: str) -> List[User]:
         if not self._client:
             return []
@@ -88,6 +112,7 @@ class SupabaseUserRepository(UserRepository):
             certificado=data.get("certificado", False),
             especialidades=data.get("especialidades") or [],
             photo_url=data.get("photo_url"),
+            initial_guidance_completed=data.get("initial_guidance_completed", False),
         )
 
     def _map_to_dict(self, user: User) -> dict:
@@ -102,4 +127,5 @@ class SupabaseUserRepository(UserRepository):
             "certificado": user.certificado,
             "especialidades": user.especialidades,
             "photo_url": user.photo_url,
+            "initial_guidance_completed": user.initial_guidance_completed,
         }
