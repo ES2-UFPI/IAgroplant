@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, StatusBar } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { ProfileAvatar } from './components/ProfileAvatar';
 import { VerifiedBadge } from './components/VerifiedBadge';
 import { SpecialtiesInput } from './components/SpecialtiesInput';
@@ -13,6 +14,7 @@ import { useDiagnosticHistory } from './hooks/useDiagnosticHistory';
 const MAX_APPLICATIONS_PREVIEW = 3;
 const MAX_REPUTATION_PREVIEW = 3;
 const MAX_DIAGNOSTICS_PREVIEW = 3;
+const CopilotView = walkthroughable(View);
 
 const REPUTATION_ACTION_LABELS: Record<string, string> = {
   post_verified: 'Post marcado como verificado',
@@ -22,7 +24,11 @@ const REPUTATION_ACTION_LABELS: Record<string, string> = {
   post_removed_violation: 'Post removido por violação',
 };
 
-export function ProfileScreen() {
+type ProfileScreenProps = {
+  coachMarksEnabled?: boolean;
+};
+
+export function ProfileScreen({ coachMarksEnabled = false }: ProfileScreenProps) {
   const navigation = useNavigation<any>();
   const { user, signOut } = useAuth();
   const { profile, isLoading, refresh } = useProfile();
@@ -47,18 +53,36 @@ export function ProfileScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <ProfileAvatar name={name} size={100} photoUrl={profile?.photo_url} />
-        <Text style={styles.name}>{name}</Text>
-        <Text style={styles.role}>{role}</Text>
-        {profile?.region && <Text style={styles.region}>📍 {profile.region}</Text>}
-        {profile?.certificado && <VerifiedBadge />}
-      </View>
+      <CopilotStep
+        text="Aqui ficam sua foto, nome, perfil e identificação principal na plataforma."
+        order={1}
+        name="profile-header"
+        active={coachMarksEnabled}
+      >
+        <CopilotView>
+          <View style={styles.header}>
+            <ProfileAvatar name={name} size={100} photoUrl={profile?.photo_url} />
+            <Text style={styles.name}>{name}</Text>
+            <Text style={styles.role}>{role}</Text>
+            {profile?.region && <Text style={styles.region}>📍 {profile.region}</Text>}
+            {profile?.certificado && <VerifiedBadge />}
+          </View>
+        </CopilotView>
+      </CopilotStep>
 
-      <View style={styles.infoSection}>
-        <Text style={styles.sectionTitle}>Dados de Contato</Text>
-        <Text style={styles.infoText}>E-mail: {email}</Text>
-      </View>
+      <CopilotStep
+        text="Confira seus dados pessoais e informações da conta nesta área."
+        order={2}
+        name="profile-info"
+        active={coachMarksEnabled}
+      >
+        <CopilotView>
+          <View style={styles.infoSection}>
+            <Text style={styles.sectionTitle}>Dados de Contato</Text>
+            <Text style={styles.infoText}>E-mail: {email}</Text>
+          </View>
+        </CopilotView>
+      </CopilotStep>
 
       <View style={styles.infoSection}>
         <View style={styles.sectionHeaderRow}>
@@ -147,13 +171,22 @@ export function ProfileScreen() {
         <Text style={styles.editButtonText}>🤝 Conexões</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.editButton}
-        onPress={() => navigation.navigate('ProfileEdit')}
-        disabled={isLoading}
+      <CopilotStep
+        text="Use este botão para atualizar seus dados, região e especialidades."
+        order={3}
+        name="profile-edit"
+        active={coachMarksEnabled}
       >
-        <Text style={styles.editButtonText}>Editar Perfil</Text>
-      </TouchableOpacity>
+        <CopilotView>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => navigation.navigate('ProfileEdit')}
+            disabled={isLoading}
+          >
+            <Text style={styles.editButtonText}>Editar Perfil</Text>
+          </TouchableOpacity>
+        </CopilotView>
+      </CopilotStep>
 
       <TouchableOpacity
         style={[styles.editButton, { backgroundColor: '#B45309', marginTop: -10, marginBottom: 40 }]}

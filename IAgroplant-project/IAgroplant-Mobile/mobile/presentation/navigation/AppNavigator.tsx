@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { CopilotProvider, useCopilot } from 'react-native-copilot';
 
 import { AuthProvider, useAuth } from '../auth/AuthContext';
 import { LoginScreen } from '../auth/LoginScreen';
@@ -27,6 +28,8 @@ import { ChatScreen } from '../chat/ChatScreen';
 import { NotificationsScreen } from '../notifications/NotificationsScreen';
 import { InitialGuidanceScreen } from '../initial-guidance/InitialGuidanceScreen';
 import { initialGuidanceService } from '../../application/services/initialGuidanceService';
+import { coachMarksService } from '../../application/services/coachMarksService';
+import { CoachMarksTooltip } from '../coach-marks/CoachMarksTooltip';
 
 const Stack = createNativeStackNavigator();
 
@@ -159,9 +162,32 @@ function RoleSelectionScreen({ navigation }: any) {
   );
 }
 
+type MainTabKey = 'feed' | 'opportunities' | 'chat' | 'profile';
+
+const COACH_TOUR_FLOW: Array<{ tab: MainTabKey; finalStep: string }> = [
+  { tab: 'feed', finalStep: 'feed-filters' },
+  { tab: 'opportunities', finalStep: 'opportunities-apply' },
+  { tab: 'chat', finalStep: 'chat-composer' },
+  { tab: 'profile', finalStep: 'profile-edit' },
+];
+
 // ─── MAIN TAB NAVIGATOR (BOTTOM TABS + GEMINI FAB) ─────────────────────────
 function MainTabNavigator({ navigation, route }: any) {
-  const [activeTab, setActiveTab] = useState<'feed' | 'opportunities' | 'chat' | 'profile'>('feed');
+  const [activeTab, setActiveTab] = useState<MainTabKey>('feed');
+  const [coachTourActive, setCoachTourActive] = useState(false);
+  const {
+    start,
+    copilotEvents,
+  } = useCopilot();
+  const activeTabRef = useRef<MainTabKey>('feed');
+  const coachTourActiveRef = useRef(false);
+  const lastStepNameRef = useRef<string | null>(null);
+
+  const completeCoachTour = React.useCallback(async () => {
+    coachTourActiveRef.current = false;
+    setCoachTourActive(false);
+    await coachMarksService.complete();
+  }, []);
 
   React.useEffect(() => {
     if (route.params?.screen) {
@@ -175,14 +201,90 @@ function MainTabNavigator({ navigation, route }: any) {
     }
   }, [route.params?.screen, route.params?.initialTab]);
 
+  React.useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
+  React.useEffect(() => {
+    coachTourActiveRef.current = coachTourActive;
+  }, [coachTourActive]);
+
+  React.useEffect(() => {
+    if (!route.params?.startCoachMarks) {
+      return;
+    }
+
+    setActiveTab('feed');
+    lastStepNameRef.current = null;
+    setCoachTourActive(true);
+    navigation.setParams({ startCoachMarks: undefined });
+  }, [navigation, route.params?.startCoachMarks]);
+
+  React.useEffect(() => {
+    if (!coachTourActive) {
+      return;
+    }
+
+    lastStepNameRef.current = null;
+    const timeout = setTimeout(() => {
+      start();
+    }, 700);
+
+    return () => clearTimeout(timeout);
+  }, [activeTab, coachTourActive, start]);
+
+  React.useEffect(() => {
+    const onStepChange = (step: { name: string } | undefined) => {
+      lastStepNameRef.current = step?.name ?? null;
+    };
+
+    const onStop = () => {
+      if (!coachTourActiveRef.current) {
+        return;
+      }
+
+      const currentIndex = COACH_TOUR_FLOW.findIndex(
+        (item) => item.tab === activeTabRef.current
+      );
+      const currentScreen = COACH_TOUR_FLOW[currentIndex];
+      const finishedCurrentScreen =
+        currentScreen && lastStepNameRef.current === currentScreen.finalStep;
+
+      if (finishedCurrentScreen && currentIndex < COACH_TOUR_FLOW.length - 1) {
+        setActiveTab(COACH_TOUR_FLOW[currentIndex + 1].tab);
+        return;
+      }
+
+      completeCoachTour();
+    };
+
+    copilotEvents.on('stepChange', onStepChange);
+    copilotEvents.on('stop', onStop);
+
+    return () => {
+      copilotEvents.off('stepChange', onStepChange);
+      copilotEvents.off('stop', onStop);
+    };
+  }, [completeCoachTour, copilotEvents]);
+
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       {/* Sub-screen rendering */}
       <View style={{ flex: 1 }}>
-        {activeTab === 'feed' && <FeedScreen navigation={navigation} />}
-        {activeTab === 'opportunities' && <OpportunitiesScreen navigation={navigation} />}
-        {activeTab === 'chat' && <ChatScreen />}
-        {activeTab === 'profile' && <ProfileScreen />}
+        {activeTab === 'feed' && (
+          <FeedScreen
+            navigation={navigation}
+            coachMarksEnabled={coachTourActive}
+          />
+        )}
+        {activeTab === 'opportunities' && (
+          <OpportunitiesScreen
+            navigation={navigation}
+            coachMarksEnabled={coachTourActive}
+          />
+        )}
+        {activeTab === 'chat' && <ChatScreen coachMarksEnabled={coachTourActive} />}
+        {activeTab === 'profile' && <ProfileScreen coachMarksEnabled={coachTourActive} />}
       </View>
 
       {/* FLOATING ACTION BUTTON - GEMINI CO-PILOT (AI DIAGNOSTIC) */}
@@ -247,10 +349,13 @@ function InitialGuidanceGate({ navigation }: any) {
     async function checkInitialGuidance() {
       try {
         const status = await initialGuidanceService.getStatus();
+        const coachMarksStatus = await coachMarksService.getStatus();
         if (!mounted) return;
 
         if (status.completed) {
-          navigation.replace('MainTabs');
+          navigation.replace('MainTabs', {
+            startCoachMarks: !coachMarksStatus.completed,
+          });
           return;
         }
 
@@ -377,7 +482,23 @@ function AuthGate() {
 export default function AppNavigator() {
   return (
     <AuthProvider>
-      <AuthGate />
+      <CopilotProvider
+        tooltipComponent={CoachMarksTooltip}
+        labels={{
+          skip: 'Pular',
+          next: 'Próximo',
+          finish: 'Concluir',
+        }}
+        backdropColor="rgba(15, 23, 42, 0.78)"
+        arrowColor="#FFFFFF"
+        overlay="view"
+        animated
+        animationDuration={260}
+        stopOnOutsideClick={false}
+        margin={8}
+      >
+        <AuthGate />
+      </CopilotProvider>
     </AuthProvider>
   );
 }

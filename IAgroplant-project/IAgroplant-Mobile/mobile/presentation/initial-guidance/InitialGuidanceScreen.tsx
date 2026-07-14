@@ -108,7 +108,9 @@ export function InitialGuidanceScreen({ navigation, route }: InitialGuidanceScre
     setIsSubmitting(true);
     try {
       await initialGuidanceService.complete();
-      navigation.replace('MainTabs');
+      navigation.replace('MainTabs', {
+        startCoachMarks: true,
+      });
     } finally {
       setIsSubmitting(false);
     }

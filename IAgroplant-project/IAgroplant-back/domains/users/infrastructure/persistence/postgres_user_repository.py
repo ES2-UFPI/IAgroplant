@@ -26,6 +26,7 @@ class PostgresUserRepository(UserRepository):
                 certificado=True,
                 especialidades=["Manejo de Pragas", "Solo"],
                 initial_guidance_completed=False,
+                interactive_onboarding_completed=False,
             )
         )
         # Mock student for proximity notification testing
@@ -40,6 +41,7 @@ class PostgresUserRepository(UserRepository):
                 certificado=False,
                 especialidades=["Culturas Anuais"],
                 initial_guidance_completed=False,
+                interactive_onboarding_completed=False,
             )
         )
 
@@ -65,6 +67,16 @@ class PostgresUserRepository(UserRepository):
         if not user:
             return None
         user.initial_guidance_completed = True
+        return self.update(user)
+
+    def get_interactive_onboarding_status(self, user_id: str) -> Optional[User]:
+        return self.get_by_id(user_id)
+
+    def mark_interactive_onboarding_completed(self, user_id: str) -> Optional[User]:
+        user = self.get_by_id(user_id)
+        if not user:
+            return None
+        user.interactive_onboarding_completed = True
         return self.update(user)
 
     def find_by_role_and_region(self, role: str, region: str) -> List[User]:

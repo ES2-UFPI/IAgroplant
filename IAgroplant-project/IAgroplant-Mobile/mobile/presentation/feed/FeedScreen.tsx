@@ -11,6 +11,7 @@ import {
   RefreshControl,
   Platform,
 } from 'react-native';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { PostCard } from './components/PostCard';
 import { FilterBar } from './components/FilterBar';
 import { ComposeBox } from './components/ComposeBox';
@@ -24,9 +25,17 @@ type FeedScreenProps = {
   navigation?: any;
   title?: string;
   initialFilter?: string;
+  coachMarksEnabled?: boolean;
 };
 
-export function FeedScreen({ navigation, title = 'IAgroplant', initialFilter = 'Todos' }: FeedScreenProps) {
+const CopilotView = walkthroughable(View);
+
+export function FeedScreen({
+  navigation,
+  title = 'IAgroplant',
+  initialFilter = 'Todos',
+  coachMarksEnabled = false,
+}: FeedScreenProps) {
   const { user } = useAuth();
   const {
     posts,
@@ -104,70 +113,97 @@ export function FeedScreen({ navigation, title = 'IAgroplant', initialFilter = '
             <Text style={styles.notificationHeaderEmoji}>🔔</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => setShowCompose((v) => !v)}
-            style={styles.publishBtn}
-            disabled={isPublishing}
+          <CopilotStep
+            text="Use este botão para criar uma nova publicação e compartilhar experiências com a comunidade."
+            order={1}
+            name="feed-create-post"
+            active={coachMarksEnabled}
           >
-            <Text style={styles.publishBtnText}>
-              {isPublishing ? 'Publicando...' : showCompose ? '✕ Fechar' : '+ Publicar'}
-            </Text>
-          </TouchableOpacity>
+            <CopilotView>
+              <TouchableOpacity
+                onPress={() => setShowCompose((v) => !v)}
+                style={styles.publishBtn}
+                disabled={isPublishing}
+              >
+                <Text style={styles.publishBtnText}>
+                  {isPublishing ? 'Publicando...' : showCompose ? '✕ Fechar' : '+ Publicar'}
+                </Text>
+              </TouchableOpacity>
+            </CopilotView>
+          </CopilotStep>
         </View>
       </View>
 
       {/* Filter bar */}
-      <FilterBar activeFilter={activeFilter} onSelect={setActiveFilter} />
+      <CopilotStep
+        text="Use os filtros e hashtags para encontrar publicações por tema."
+        order={3}
+        name="feed-filters"
+        active={coachMarksEnabled}
+      >
+        <CopilotView>
+          <FilterBar activeFilter={activeFilter} onSelect={setActiveFilter} />
+        </CopilotView>
+      </CopilotStep>
 
       {/* Feed list */}
-      <FlatList<Post>
-        data={posts}
-        keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => (
-          <PostCard
-            post={item}
-            onLike={toggleLike}
-            canModerate={profile?.certificado}
-            currentUserId={profile?.id}
-            onVerify={verifyPost}
-            onRemove={removePost}
-            onTagPress={setActiveFilter}
-            onCommentPress={setSelectedPost}
+      <CopilotStep
+        text="Aqui você acompanha publicações da comunidade e aprende com experiências reais."
+        order={2}
+        name="feed-post-list"
+        active={coachMarksEnabled}
+      >
+        <CopilotView style={styles.feedListCoachWrapper}>
+          <FlatList<Post>
+            data={posts}
+            keyExtractor={(item) => String(item.id)}
+            renderItem={({ item }) => (
+              <PostCard
+                post={item}
+                onLike={toggleLike}
+                canModerate={profile?.certificado}
+                currentUserId={profile?.id}
+                onVerify={verifyPost}
+                onRemove={removePost}
+                onTagPress={setActiveFilter}
+                onCommentPress={setSelectedPost}
+              />
+            )}
+            ListHeaderComponent={
+              showCompose ? (
+                <ComposeBox onPublish={handlePublish} onClose={() => setShowCompose(false)} />
+              ) : null
+            }
+            ListEmptyComponent={
+              <View style={styles.empty}>
+                <Text style={styles.emptyEmoji}>🌿</Text>
+                <Text style={styles.emptyText}>Nenhum post nessa categoria.</Text>
+              </View>
+            }
+            ListFooterComponent={
+              isLoadingMore ? (
+                <View style={styles.footer}>
+                  <ActivityIndicator size="small" color="#16A34A" />
+                </View>
+              ) : !hasMore && posts.length > 0 ? (
+                <Text style={styles.footerText}>Você chegou ao fim do feed</Text>
+              ) : null
+            }
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.3}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isLoading}
+                onRefresh={refresh}
+                tintColor="#16A34A"
+                colors={['#16A34A']}
+              />
+            }
           />
-        )}
-        ListHeaderComponent={
-          showCompose ? (
-            <ComposeBox onPublish={handlePublish} onClose={() => setShowCompose(false)} />
-          ) : null
-        }
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>🌿</Text>
-            <Text style={styles.emptyText}>Nenhum post nessa categoria.</Text>
-          </View>
-        }
-        ListFooterComponent={
-          isLoadingMore ? (
-            <View style={styles.footer}>
-              <ActivityIndicator size="small" color="#16A34A" />
-            </View>
-          ) : !hasMore && posts.length > 0 ? (
-            <Text style={styles.footerText}>Você chegou ao fim do feed</Text>
-          ) : null
-        }
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.3}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isLoading}
-            onRefresh={refresh}
-            tintColor="#16A34A"
-            colors={['#16A34A']}
-          />
-        }
-      />
+        </CopilotView>
+      </CopilotStep>
 
       <CommentsModal
         post={selectedPost}
@@ -220,6 +256,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   listContent: { padding: 12, paddingBottom: 32 },
+  feedListCoachWrapper: { flex: 1 },
   empty: { alignItems: 'center', paddingVertical: 40 },
   emptyEmoji: { fontSize: 40 },
   emptyText: { fontSize: 14, color: '#9CA3AF', marginTop: 8 },
