@@ -7,6 +7,8 @@ from shared.utils.repository_factory import get_user_repository, get_reputation_
 from domains.users.application.use_cases.get_profile_use_case import GetProfileUseCase
 from domains.users.application.use_cases.update_profile_use_case import UpdateProfileUseCase, UpdateProfileInput
 from domains.users.application.use_cases.update_profile_photo_use_case import UpdateProfilePhotoUseCase
+from domains.users.application.use_cases.complete_initial_guidance_use_case import CompleteInitialGuidanceUseCase
+from domains.users.application.use_cases.get_initial_guidance_status_use_case import GetInitialGuidanceStatusUseCase
 from domains.users.application.use_cases.search_specialists_use_case import (
     SearchSpecialistsUseCase,
     SearchSpecialistsInput,
@@ -44,6 +46,12 @@ class UpdateProfileSerializer(serializers.Serializer):
     name = serializers.CharField(required=False)
     region = serializers.CharField(required=False, allow_null=True)
     especialidades = serializers.ListField(child=serializers.CharField(), required=False)
+
+
+class InitialGuidanceStatusSerializer(serializers.Serializer):
+    user_id = serializers.CharField()
+    role = serializers.CharField()
+    completed = serializers.BooleanField()
 
 
 # ─── VIEWS ───────────────────────────────────────────────────────────────────
@@ -138,6 +146,59 @@ class MeProfilePhotoView(APIView):
         except Exception:
             return Response(
                 {"detail": "Erro interno ao enviar a foto de perfil."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class MeInitialGuidanceView(APIView):
+    """
+    GET /api/users/me/onboarding   - Consulta status e perfil do direcionamento inicial
+    PATCH /api/users/me/onboarding - Marca o direcionamento inicial como concluído
+    """
+
+    def get(self, request):
+        current_user = getattr(request, "current_user", None)
+        if not current_user:
+            return Response(
+                {"detail": "Não autenticado."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        repo = get_user_repository()
+        use_case = GetInitialGuidanceStatusUseCase(repository=repo)
+
+        try:
+            result = use_case.execute(current_user.id)
+            serializer = InitialGuidanceStatusSerializer(result)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            return Response(
+                {"detail": "Erro interno ao consultar direcionamento inicial."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def patch(self, request):
+        current_user = getattr(request, "current_user", None)
+        if not current_user:
+            return Response(
+                {"detail": "Não autenticado."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        repo = get_user_repository()
+        use_case = CompleteInitialGuidanceUseCase(repository=repo)
+
+        try:
+            result = use_case.execute(current_user.id)
+            serializer = InitialGuidanceStatusSerializer(result)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            return Response(
+                {"detail": "Erro interno ao concluir direcionamento inicial."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
